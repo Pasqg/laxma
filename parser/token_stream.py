@@ -14,3 +14,6 @@ class TokenStream[TokenType]:
 
     def advance(self) -> Tuple[TokenType, Self]:
         return self.tokens[self.start], TokenStream(self.tokens, self.start + 1)
+
+    def __eq__(self, other):
+        return self.start == other.start and self.tokens == other.tokens
