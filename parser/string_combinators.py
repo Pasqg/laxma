@@ -1,12 +1,12 @@
 import re
+from typing import Optional
 
 from parser.ast import AST
 from parser.token_stream import TokenStream
-from parser.types import RuleId, TokenType
-from parser.combinators import Combinator, ParserResult
+from parser.types import RuleId, Combinator
 
 
-def equals(rule_id: RuleId, s: str):
+def match_str(rule_id: Optional[RuleId], s: str) -> Combinator[RuleId, str]:
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
@@ -17,7 +17,7 @@ def equals(rule_id: RuleId, s: str):
     return inner
 
 
-def pattern(rule_id: RuleId, pattern):
+def match_regex(rule_id: Optional[RuleId], pattern) -> Combinator[RuleId, str]:
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
@@ -26,3 +26,11 @@ def pattern(rule_id: RuleId, pattern):
         return False, AST(), tokens
 
     return inner
+
+
+def lit(s: str) -> Combinator[RuleId, str]:
+    return match_str(None, s)
+
+
+def regex(r) -> Combinator[RuleId, str]:
+    return match_regex(None, r)

@@ -1,21 +1,18 @@
-from typing import Callable, List, Tuple, Optional
+from typing import Optional
 
 from parser.ast import AST
 from parser.token_stream import TokenStream
-from parser.types import RuleId, TokenType
-
-type ParserResult[RuleId, TokenType] = Tuple[bool, AST[RuleId, TokenType], TokenStream[TokenType]]
-type Combinator[RuleId, TokenType] = Callable[[TokenStream[TokenType]], ParserResult[RuleId, TokenType]]
+from parser.types import RuleId, TokenType, Combinator
 
 
-def matchNone(id: RuleId) -> Combinator[RuleId, TokenType]:
+def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         return True, AST(id, [], []), tokens
 
     return inner
 
 
-def matchAnything(id: RuleId) -> Combinator[RuleId, TokenType]:
+def match_any(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
@@ -25,7 +22,7 @@ def matchAnything(id: RuleId) -> Combinator[RuleId, TokenType]:
     return inner
 
 
-def andMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
+def and_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         remaining = tokens
         matched = []
@@ -41,7 +38,7 @@ def andMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[Ru
     return inner
 
 
-def orMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
+def or_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         for rule in rules:
             result, matched, remaining = rule(tokens)
@@ -52,8 +49,13 @@ def orMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[Rul
     return inner
 
 
-def listParser(id: RuleId, *, element: Combinator[RuleId, TokenType],
-               delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
+def many(id: Optional[RuleId] = None, *, element: Combinator[RuleId, TokenType],
+         delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
+    return or_match(id, at_least_one(id, element=element, delim=delim), match_none())
+
+
+def at_least_one(id: Optional[RuleId] = None, *, element: Combinator[RuleId, TokenType],
+                 delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
     if delim is None:
         def inner(tokens):
             remaining = tokens
@@ -62,7 +64,7 @@ def listParser(id: RuleId, *, element: Combinator[RuleId, TokenType],
             if not result:
                 return False, AST(), tokens
 
-            result, mmatched, mremaining = listParser(id, element=element, delim=delim)(remaining)
+            result, mmatched, mremaining = at_least_one(id, element=element, delim=delim)(remaining)
             if result:
                 return (True,
                         AST(id,
@@ -86,7 +88,7 @@ def listParser(id: RuleId, *, element: Combinator[RuleId, TokenType],
             if not result:
                 return True, AST(id, ematched.matched, [ematched]), remaining
 
-            result, mmatched, mremaining = listParser(id, element=element, delim=delim)(nremaining)
+            result, mmatched, mremaining = at_least_one(id, element=element, delim=delim)(nremaining)
             if result:
                 return (True,
                         AST(id,
