@@ -11,7 +11,7 @@ class AST[RuleId, TokenType]:
         self.children = children if children else []
 
     def __repr__(self):
-        return f"AST({self.name}, {self.matched}, '{' '.join(n.name for n in self.children)}')"
+        return f"AST({self.name}, {self.matched}, {self.children})"
 
     def __eq__(self, other):
         return self.name == other.name and self.matched == other.matched and self.children == other.children
