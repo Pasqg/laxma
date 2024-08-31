@@ -1,6 +1,6 @@
 from parser.ast import AST
 from parser.combinators import orMatch, andMatch, listParser, matchNone
-from parser.string_combinators import matchStr
+from parser.string_combinators import equals
 from parser.token_stream import TokenStream
 
 
@@ -17,7 +17,7 @@ def test_or():
     tokens_fanc = TokenStream(["fanc"])
     tokens_fenc = TokenStream(["fenc"])
 
-    parser = orMatch("OR", matchStr("FUNC", "func"), matchStr("FANC", "fanc"))
+    parser = orMatch("OR", equals("FUNC", "func"), equals("FANC", "fanc"))
 
     assert parser(tokens_func) == (True, AST("OR", ["func"], [AST("FUNC", ["func"])]), tokens_func.advance()[1])
     assert parser(tokens_fanc) == (True, AST("OR", ["fanc"], [AST("FANC", ["fanc"])]), tokens_fanc.advance()[1])
@@ -28,7 +28,7 @@ def test_and():
     tokens_func_fanc = TokenStream(["func", "fanc"])
     tokens_func_fenc = TokenStream(["func", "fenc"])
 
-    parser = andMatch("AND", matchStr("FUNC", "func"), matchStr("FANC", "fanc"))
+    parser = andMatch("AND", equals("FUNC", "func"), equals("FANC", "fanc"))
 
     assert parser(tokens_func_fanc) == (True,
                                         AST("AND", ["func", "fanc"], [AST("FUNC", ["func"]), AST("FANC", ["fanc"])]),
@@ -37,7 +37,7 @@ def test_and():
 
 
 def test_list_one_element():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"))
+    parser = listParser("LIST", element=equals("FUNC", "func"))
 
     tokens_func = TokenStream(["func"])
     func_ast = AST("FUNC", ["func"])
@@ -47,7 +47,7 @@ def test_list_one_element():
 
 
 def test_list_two_elements():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"))
+    parser = listParser("LIST", element=equals("FUNC", "func"))
     tokens_func_func = TokenStream(["func", "func"])
     func_ast = AST("FUNC", ["func"])
     assert parser(tokens_func_func) == (True,
@@ -57,7 +57,7 @@ def test_list_two_elements():
 
 
 def test_list_three_elements():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"))
+    parser = listParser("LIST", element=equals("FUNC", "func"))
     tokens_func_func_func = TokenStream(["func", "func", "func", "fanc"])
     func_ast = AST("FUNC", ["func"])
     assert parser(tokens_func_func_func) == (True,
@@ -68,7 +68,7 @@ def test_list_three_elements():
 
 
 def test_list_no_delim():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"), delim=matchStr("+", "+"))
+    parser = listParser("LIST", element=equals("FUNC", "func"), delim=equals("+", "+"))
 
     tokens_func = TokenStream(["func"])
     func_ast = AST("FUNC", ["func"])
@@ -78,7 +78,7 @@ def test_list_no_delim():
 
 
 def test_list_one_delim():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"), delim=matchStr("+", "+"))
+    parser = listParser("LIST", element=equals("FUNC", "func"), delim=equals("+", "+"))
 
     tokens_func = TokenStream(["func", "+", "func", "+"])
     func_ast = AST("FUNC", ["func"])
@@ -90,7 +90,7 @@ def test_list_one_delim():
 
 
 def test_list_no_match():
-    parser = listParser("LIST", element=matchStr("FUNC", "func"), delim=matchStr("+", "+"))
+    parser = listParser("LIST", element=equals("FUNC", "func"), delim=equals("+", "+"))
 
     tokens_func = TokenStream(["fanc"])
     assert parser(tokens_func) == (False, AST(), tokens_func)

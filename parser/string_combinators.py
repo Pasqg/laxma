@@ -6,7 +6,7 @@ from parser.types import RuleId, TokenType
 from parser.combinators import Combinator, ParserResult
 
 
-def matchStr(rule_id: RuleId, s: str):
+def equals(rule_id: RuleId, s: str):
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
@@ -17,7 +17,7 @@ def matchStr(rule_id: RuleId, s: str):
     return inner
 
 
-def matchRegex(rule_id: RuleId, pattern):
+def pattern(rule_id: RuleId, pattern):
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()

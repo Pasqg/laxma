@@ -8,14 +8,24 @@ type ParserResult[RuleId, TokenType] = Tuple[bool, AST[RuleId, TokenType], Token
 type Combinator[RuleId, TokenType] = Callable[[TokenStream[TokenType]], ParserResult[RuleId, TokenType]]
 
 
-def matchNone(id: RuleId):
+def matchNone(id: RuleId) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         return True, AST(id, [], []), tokens
 
     return inner
 
 
-def andMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]):
+def matchAnything(id: RuleId) -> Combinator[RuleId, TokenType]:
+    def inner(tokens: TokenStream):
+        if tokens:
+            token, remaining = tokens.advance()
+            return True, AST(id, [token]), remaining
+        return False, AST(), tokens
+
+    return inner
+
+
+def andMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         remaining = tokens
         matched = []
@@ -31,7 +41,7 @@ def andMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]):
     return inner
 
 
-def orMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]):
+def orMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
     def inner(tokens: TokenStream[TokenType]):
         for rule in rules:
             result, matched, remaining = rule(tokens)
@@ -43,7 +53,7 @@ def orMatch(id: RuleId, *rules: Combinator[RuleId, TokenType]):
 
 
 def listParser(id: RuleId, *, element: Combinator[RuleId, TokenType],
-               delim: Optional[Combinator[RuleId, TokenType]] = None):
+               delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
     if delim is None:
         def inner(tokens):
             remaining = tokens
