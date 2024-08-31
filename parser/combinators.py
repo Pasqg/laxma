@@ -5,24 +5,41 @@ from parser.token_stream import TokenStream
 from parser.types import RuleId, TokenType, Combinator
 
 
+def anonymous(combinator: Combinator[RuleId, TokenType], *args, **kwargs) -> Combinator[RuleId, TokenType]:
+    return lambda id: combinator(id, *args, **kwargs)
+
+
 def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
+    """
+        Matches nothing. Used to make it easier to match both empty and non-empty sequences with one rule.
+    """
+
     def inner(tokens: TokenStream[TokenType]):
         return True, AST(id, [], []), tokens
 
     return inner
 
 
-def match_any(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
+def match_any(id: Optional[RuleId] = None, excluded: Optional[TokenType] = None) -> Combinator[RuleId, TokenType]:
+    """
+        Matches any one token, excluding the 'excluded' token (if provided).
+    """
+
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
-            return True, AST(id, [token]), remaining
+            if token is not excluded:
+                return True, AST(id, [token]), remaining
         return False, AST(), tokens
 
     return inner
 
 
 def and_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
+    """
+        Returns a match if all the input rules match, otherwise it fails (and backtracks).
+    """
+
     def inner(tokens: TokenStream[TokenType]):
         remaining = tokens
         matched = []
@@ -39,6 +56,10 @@ def and_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Co
 
 
 def or_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
+    """
+        Returns a match if any of the input rules match, otherwise it fails (and backtracks).
+    """
+
     def inner(tokens: TokenStream[TokenType]):
         for rule in rules:
             result, matched, remaining = rule(tokens)
@@ -51,11 +72,19 @@ def or_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Com
 
 def many(id: Optional[RuleId] = None, *, element: Combinator[RuleId, TokenType],
          delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
+    """
+        Matches zero or more occurrences of the provided 'element' rule.
+        Optionally, matches a delimiter rule between each of the elements.
+    """
     return or_match(id, at_least_one(id, element=element, delim=delim), match_none())
 
 
 def at_least_one(id: Optional[RuleId] = None, *, element: Combinator[RuleId, TokenType],
                  delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
+    """
+        Matches at least one occurrence of the provided 'element' rule.
+        Optionally, matches a delimiter rule between each of the elements.
+    """
     if delim is None:
         def inner(tokens):
             remaining = tokens

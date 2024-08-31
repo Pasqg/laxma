@@ -1,5 +1,5 @@
 from parser.ast import AST
-from parser.combinators import or_match, and_match, at_least_one, match_none
+from parser.combinators import or_match, and_match, at_least_one, match_none, match_any
 from parser.string_combinators import match_str
 from parser.token_stream import TokenStream
 
@@ -10,6 +10,22 @@ def test_match_none():
     parser = match_none("NONE")
 
     assert parser(tokens) == (True, AST("NONE"), tokens)
+
+
+def test_match_any():
+    tokens = TokenStream(["func"])
+
+    parser = match_any()
+
+    assert parser(tokens) == (True, AST(None, ["func"], []), TokenStream(["func"], 1))
+
+
+def test_match_any_but_excluded():
+    tokens = TokenStream(["func"])
+
+    parser = match_any(excluded="func")
+
+    assert parser(tokens) == (False, AST(), TokenStream(["func"], 0))
 
 
 def test_or():
