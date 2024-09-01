@@ -28,7 +28,7 @@ def match_any(id: Optional[RuleId] = None, excluded: Optional[TokenType] = None)
     def inner(tokens: TokenStream):
         if tokens:
             token, remaining = tokens.advance()
-            if token is not excluded:
+            if token != excluded:
                 return True, AST(id, [token]), remaining
         return False, AST(), tokens
 
