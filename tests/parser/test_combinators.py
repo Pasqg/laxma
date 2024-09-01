@@ -68,7 +68,7 @@ def test_list_two_elements():
     func_ast = AST("FUNC", ["func"])
     assert parser(tokens_func_func) == (True,
                                         AST("LIST", ["func", "func"],
-                                            [func_ast, AST("LIST", ["func"], [func_ast])]),
+                                            [func_ast, func_ast]),
                                         tokens_func_func.advance()[1].advance()[1])
 
 
@@ -78,8 +78,7 @@ def test_list_three_elements():
     func_ast = AST("FUNC", ["func"])
     assert parser(tokens_func_func_func) == (True,
                                              AST("LIST", ["func", "func", "func"],
-                                                 [func_ast, AST("LIST", ["func", "func"],
-                                                                [func_ast, AST("LIST", ["func"], [func_ast])])]),
+                                                 [func_ast, func_ast, func_ast]),
                                              tokens_func_func_func.advance()[1].advance()[1].advance()[1])
 
 
@@ -101,8 +100,20 @@ def test_list_one_delim():
     plus_ast = AST("+", ["+"])
     assert parser(tokens_func) == (True,
                                    AST("LIST", ["func", "+", "func"],
-                                       [func_ast, plus_ast, AST("LIST", ["func"], [func_ast])]),
+                                       [func_ast, plus_ast, func_ast]),
                                    tokens_func.advance()[1].advance()[1].advance()[1])
+
+
+def test_list_two_delim():
+    parser = at_least_one("LIST", element=match_str("FUNC", "func"), delim=match_str("+", "+"))
+
+    tokens_func = TokenStream(["func", "+", "func", "+", "func", "+"])
+    func_ast = AST("FUNC", ["func"])
+    plus_ast = AST("+", ["+"])
+    assert parser(tokens_func) == (True,
+                                   AST("LIST", ["func", "+", "func", "+", "func"],
+                                       [func_ast, plus_ast, func_ast, plus_ast, func_ast]),
+                                   tokens_func.advance()[1].advance()[1].advance()[1].advance()[1].advance()[1])
 
 
 def test_list_no_match():

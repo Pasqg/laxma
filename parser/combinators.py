@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Optional
 
 from parser.ast import AST
@@ -85,48 +86,29 @@ def at_least_one(id: Optional[RuleId] = None, *, element: Combinator[RuleId, Tok
         Matches at least one occurrence of the provided 'element' rule.
         Optionally, matches a delimiter rule between each of the elements.
     """
-    if delim is None:
-        def inner(tokens):
-            remaining = tokens
+    first_element = element
+    if delim is not None:
+        element = and_match(id, delim, element)
 
-            result, ematched, remaining = element(remaining)
-            if not result:
-                return False, AST(), tokens
+    def inner(tokens):
+        element_result, element_ast, element_remaining = first_element(tokens)
+        if not element_result:
+            return False, AST(), tokens
 
-            result, mmatched, mremaining = at_least_one(id, element=element, delim=delim)(remaining)
-            if result:
-                return (True,
-                        AST(id,
-                            ematched.matched + mmatched.matched,
-                            # Could be flattened to be agnostic of left/right recursion
-                            [ematched, mmatched]),
-                        mremaining)
+        stack = deque([(element_result, AST(id, element_ast.matched, [element_ast]), element_remaining)])
+        while stack:
+            result, ast, remaining = stack.pop()
+
+            element_result, element_ast, element_remaining = element(remaining)
+            if element_result:
+                if delim is None:
+                    stack.append((True, ast.merge(element_ast), element_remaining))
+                else:
+                    for c in element_ast.children:
+                        ast = ast.merge(c)
+                    stack.append((True, ast, element_remaining))
             else:
-                # matches only element
-                return True, AST(id, ematched.matched, [ematched]), remaining
-    else:
-        def inner(tokens):
-            remaining = tokens
-
-            result, ematched, remaining = element(remaining)
-            if not result:
-                return False, AST(), tokens
-
-            # Handle None for delim better!
-            result, nmatched, nremaining = delim(remaining)
-            if not result:
-                return True, AST(id, ematched.matched, [ematched]), remaining
-
-            result, mmatched, mremaining = at_least_one(id, element=element, delim=delim)(nremaining)
-            if result:
-                return (True,
-                        AST(id,
-                            ematched.matched + nmatched.matched + mmatched.matched,
-                            # Could be flattened to be agnostic of left/right recursion
-                            [ematched, nmatched, mmatched] if nmatched else [ematched, nmatched]),
-                        mremaining)
-            else:
-                # matches only element
-                return True, AST(id, ematched.matched, [ematched]), remaining
+                # If element doesn't match, then return the last result (either no match, or matched until now)
+                return result, ast, remaining
 
     return inner

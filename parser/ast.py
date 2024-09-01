@@ -7,8 +7,14 @@ class AST[RuleId, TokenType]:
                  matched: Optional[List[TokenType]] = None,
                  children: Optional[List[Self]] = None):
         self.name = name
-        self.matched = matched if matched else []
-        self.children = children if children else []
+        self.matched = matched.copy() if matched else []
+        self.children = children.copy() if children else []
+
+    def merge(self, other: Optional[Self]):
+        if other is not None:
+            self.matched += other.matched
+            self.children.append(other)
+        return self
 
     def __repr__(self):
         return f"AST({self.name}, {self.matched}, {self.children})"
