@@ -155,6 +155,10 @@ The un-pruned AST produced by the parser:
 |  |  +- None: )
 ```
 
+# Error reporting
+
+ ### 🚧 Work in progress 🚧
+
 # License
 
 This project is licensed under [Apache 2.0 license](LICENSE).
