@@ -21,16 +21,19 @@ def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
     return inner
 
 
-def match_any(id: Optional[RuleId] = None, excluded: Optional[TokenType] = None) -> Combinator[RuleId, TokenType]:
+def match_any(id: Optional[RuleId] = None, excluded: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
     """
         Matches any one token, excluding the 'excluded' token (if provided).
     """
 
     def inner(tokens: TokenStream):
         if tokens:
+            if excluded is not None:
+                result, ast, remaining = excluded(tokens)
+                if result:
+                    return False, AST(), tokens
             token, remaining = tokens.advance()
-            if token != excluded:
-                return True, AST(id, [token]), remaining
+            return True, AST(id, [token]), remaining
         return False, AST(), tokens
 
     return inner

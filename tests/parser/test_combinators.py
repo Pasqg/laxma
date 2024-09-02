@@ -1,6 +1,6 @@
 from parser.ast import AST
 from parser.combinators import or_match, and_match, at_least_one, match_none, match_any
-from parser.string_combinators import match_str
+from parser.string_combinators import match_str, lit
 from parser.token_stream import TokenStream
 
 
@@ -23,7 +23,7 @@ def test_match_any():
 def test_match_any_but_excluded():
     tokens = TokenStream(["func"])
 
-    parser = match_any(excluded="func")
+    parser = match_any(excluded=lit("func"))
 
     assert parser(tokens) == (False, AST(), TokenStream(["func"], 0))
 
