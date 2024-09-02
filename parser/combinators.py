@@ -6,10 +6,6 @@ from parser.token_stream import TokenStream
 from parser.types import RuleId, TokenType, Combinator
 
 
-def anonymous(combinator: Combinator[RuleId, TokenType], *args, **kwargs) -> Combinator[RuleId, TokenType]:
-    return lambda id: combinator(id, *args, **kwargs)
-
-
 def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
     """
         Matches nothing. Used to make it easier to match both empty and non-empty sequences with one rule.
