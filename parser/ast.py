@@ -17,7 +17,13 @@ class AST[RuleId, TokenType]:
         return self
 
     def __repr__(self):
-        return f"AST({self.name}, {self.matched}, {self.children})"
+        return self.__print_visit__()
+
+    def __print_visit__(self, level=0):
+        output = f"{' ' * (2 * level)} +- {self.name}: {' '.join(self.matched)}"
+        for child in self.children:
+            output += "\n" + child.__print_visit__(level + 1)
+        return output
 
     def __eq__(self, other):
         return self.name == other.name and self.matched == other.matched and self.children == other.children
