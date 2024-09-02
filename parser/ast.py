@@ -20,7 +20,7 @@ class AST[RuleId, TokenType]:
         return self.__print_visit__()
 
     def __print_visit__(self, level=0):
-        output = f"{' ' * (2 * level)} +- {self.name}: {' '.join(self.matched)}"
+        output = f"{'  |' * level}  +- {self.name}: {' '.join(self.matched)}"
         for child in self.children:
             output += "\n" + child.__print_visit__(level + 1)
         return output

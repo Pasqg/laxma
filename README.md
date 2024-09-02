@@ -85,74 +85,74 @@ This grammar can parse text such as:
 The un-pruned AST produced by the parser:
 
 ```
- +- LispRule.PROGRAM: ( fun add ( x y ) ( + x y ) ) ( fun main ( ) ( print ( add 2 3 ) ) )
-   +- LispRule.FUNCTION_DEF: ( fun add ( x y ) ( + x y ) )
-     +- None: (
-     +- None: fun
-     +- None: add
-     +- LispRule.FORM: ( x y )
-       +- None: (
-       +- LispRule.ELEMENTS: x y
-         +- LispRule.ELEMENTS: x y
-           +- LispRule.ELEMENT: x
-             +- LispRule.IDENTIFIER: x
-               +- None: x
-           +- LispRule.ELEMENT: y
-             +- LispRule.IDENTIFIER: y
-               +- None: y
-       +- None: )
-     +- LispRule.ELEMENTS: ( + x y )
-       +- LispRule.ELEMENT: ( + x y )
-         +- LispRule.FORM: ( + x y )
-           +- None: (
-           +- LispRule.ELEMENTS: + x y
-             +- LispRule.ELEMENTS: + x y
-               +- LispRule.ELEMENT: +
-                 +- LispRule.IDENTIFIER: +
-                   +- None: +
-               +- LispRule.ELEMENT: x
-                 +- LispRule.IDENTIFIER: x
-                   +- None: x
-               +- LispRule.ELEMENT: y
-                 +- LispRule.IDENTIFIER: y
-                   +- None: y
-           +- None: )
-     +- None: )
-   +- LispRule.FUNCTION_DEF: ( fun main ( ) ( print ( add 2 3 ) ) )
-     +- None: (
-     +- None: fun
-     +- None: main
-     +- LispRule.FORM: ( )
-       +- None: (
-       +- LispRule.ELEMENTS: 
-         +- None: 
-       +- None: )
-     +- LispRule.ELEMENTS: ( print ( add 2 3 ) )
-       +- LispRule.ELEMENT: ( print ( add 2 3 ) )
-         +- LispRule.FORM: ( print ( add 2 3 ) )
-           +- None: (
-           +- LispRule.ELEMENTS: print ( add 2 3 )
-             +- LispRule.ELEMENTS: print ( add 2 3 )
-               +- LispRule.ELEMENT: print
-                 +- LispRule.IDENTIFIER: print
-                   +- None: print
-               +- LispRule.ELEMENT: ( add 2 3 )
-                 +- LispRule.FORM: ( add 2 3 )
-                   +- None: (
-                   +- LispRule.ELEMENTS: add 2 3
-                     +- LispRule.ELEMENTS: add 2 3
-                       +- LispRule.ELEMENT: add
-                         +- LispRule.IDENTIFIER: add
-                           +- None: add
-                       +- LispRule.ELEMENT: 2
-                         +- LispRule.IDENTIFIER: 2
-                           +- None: 2
-                       +- LispRule.ELEMENT: 3
-                         +- LispRule.IDENTIFIER: 3
-                           +- None: 3
-                   +- None: )
-           +- None: )
-     +- None: )
++- LispRule.PROGRAM: ( fun add ( x y ) ( + x y ) ) ( fun main ( ) ( print ( add 2 3 ) ) )
+|  +- LispRule.FUNCTION_DEF: ( fun add ( x y ) ( + x y ) )
+|  |  +- None: (
+|  |  +- None: fun
+|  |  +- None: add
+|  |  +- LispRule.FORM: ( x y )
+|  |  |  +- None: (
+|  |  |  +- LispRule.ELEMENTS: x y
+|  |  |  |  +- LispRule.ELEMENTS: x y
+|  |  |  |  |  +- LispRule.ELEMENT: x
+|  |  |  |  |  |  +- LispRule.IDENTIFIER: x
+|  |  |  |  |  |  |  +- None: x
+|  |  |  |  |  +- LispRule.ELEMENT: y
+|  |  |  |  |  |  +- LispRule.IDENTIFIER: y
+|  |  |  |  |  |  |  +- None: y
+|  |  |  +- None: )
+|  |  +- LispRule.ELEMENTS: ( + x y )
+|  |  |  +- LispRule.ELEMENT: ( + x y )
+|  |  |  |  +- LispRule.FORM: ( + x y )
+|  |  |  |  |  +- None: (
+|  |  |  |  |  +- LispRule.ELEMENTS: + x y
+|  |  |  |  |  |  +- LispRule.ELEMENTS: + x y
+|  |  |  |  |  |  |  +- LispRule.ELEMENT: +
+|  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: +
+|  |  |  |  |  |  |  |  |  +- None: +
+|  |  |  |  |  |  |  +- LispRule.ELEMENT: x
+|  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: x
+|  |  |  |  |  |  |  |  |  +- None: x
+|  |  |  |  |  |  |  +- LispRule.ELEMENT: y
+|  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: y
+|  |  |  |  |  |  |  |  |  +- None: y
+|  |  |  |  |  +- None: )
+|  |  +- None: )
+|  +- LispRule.FUNCTION_DEF: ( fun main ( ) ( print ( add 2 3 ) ) )
+|  |  +- None: (
+|  |  +- None: fun
+|  |  +- None: main
+|  |  +- LispRule.FORM: ( )
+|  |  |  +- None: (
+|  |  |  +- LispRule.ELEMENTS: 
+|  |  |  |  +- None: 
+|  |  |  +- None: )
+|  |  +- LispRule.ELEMENTS: ( print ( add 2 3 ) )
+|  |  |  +- LispRule.ELEMENT: ( print ( add 2 3 ) )
+|  |  |  |  +- LispRule.FORM: ( print ( add 2 3 ) )
+|  |  |  |  |  +- None: (
+|  |  |  |  |  +- LispRule.ELEMENTS: print ( add 2 3 )
+|  |  |  |  |  |  +- LispRule.ELEMENTS: print ( add 2 3 )
+|  |  |  |  |  |  |  +- LispRule.ELEMENT: print
+|  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: print
+|  |  |  |  |  |  |  |  |  +- None: print
+|  |  |  |  |  |  |  +- LispRule.ELEMENT: ( add 2 3 )
+|  |  |  |  |  |  |  |  +- LispRule.FORM: ( add 2 3 )
+|  |  |  |  |  |  |  |  |  +- None: (
+|  |  |  |  |  |  |  |  |  +- LispRule.ELEMENTS: add 2 3
+|  |  |  |  |  |  |  |  |  |  +- LispRule.ELEMENTS: add 2 3
+|  |  |  |  |  |  |  |  |  |  |  +- LispRule.ELEMENT: add
+|  |  |  |  |  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: add
+|  |  |  |  |  |  |  |  |  |  |  |  |  +- None: add
+|  |  |  |  |  |  |  |  |  |  |  +- LispRule.ELEMENT: 2
+|  |  |  |  |  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: 2
+|  |  |  |  |  |  |  |  |  |  |  |  |  +- None: 2
+|  |  |  |  |  |  |  |  |  |  |  +- LispRule.ELEMENT: 3
+|  |  |  |  |  |  |  |  |  |  |  |  +- LispRule.IDENTIFIER: 3
+|  |  |  |  |  |  |  |  |  |  |  |  |  +- None: 3
+|  |  |  |  |  |  |  |  |  +- None: )
+|  |  |  |  |  +- None: )
+|  |  +- None: )
 ```
 
 # License
