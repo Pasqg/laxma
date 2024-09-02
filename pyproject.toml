@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pymbinator"
+name = "quokko"
 version = "0.1.0"
 description = ""
 authors = ["Pasqg <pasquale.giovenale@gmail.com>"]
