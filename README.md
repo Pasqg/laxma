@@ -1,42 +1,42 @@
-# Quokko 
+# Quokko
 
-This project provides simple parser combinators in python. Tokens can be any type.
+This project provides simple parser combinators in python. Tokens can have any type.
 
 # Description
 
 A parser is a function that takes a TokenStream as input and outputs a ParseResult. The ParseResult contains:
 
-- a boolean that indicates where parsing was successful
-- an AST (Abstract Syntax Tree) that represents the token stream
-- the remaining tokens in the stream
+- A boolean that indicates whether parsing was successful.
+- An AST (Abstract Syntax Tree) that represents the token stream.
+- The remaining tokens in the stream.
 
-One can build a fully fledge parser in one "block", but that would be fairly complex and very hard to get right and
+One can build a fully fledged parser in one "block", but that would be fairly complex and very hard to get right and
 maintain. Instead, parsers can be built up in a modular way from smaller parsers using utilities called parsers
 combinators.
 
 ## Parser combinators
 
-A combinator is a higher-order function that takes an optional name/id (useful for searching in the tree during the
-compilation stage) and a list of combinators. It outputs a parser function.
+A parser combinator is a higher-order function that takes an optional name/id to identify a grammar rule (useful for
+searching in the tree during the compilation stage) and a list of combinators. It outputs a parser function.
 
-Simple parsers, matching a single token either literally or through patterns/regex), can be used as building block when
+Simple parsers, matching a single token either literally or through patterns/regex, can be used as building blocks when
 combined as logical 'ORs' and 'ANDs' or in collection such as 'LISTs'.
 
-A variable assignment is usually composed by an identifier, an equal sign (or equivalent operator) and a value (literal
-or epxression). The natural language description of this parser should already give away the implementation through a
-parser combinator:
+A variable assignment is usually composed by an identifier, an equal sign (or equivalent operator) and a value (a
+literal or an expression). The natural language description of this parser should already give away the implementation
+through a parser combinator:
 
 `variable_assignment = and_match(identifier, lit("="), expression)`
 
 The 'and_match' combinator will succeed if all its input (composed) parsers succeed, otherwise it will fail. It is very
-easy to change and extend grammars in the future: if our `identifier` becames more complex (accessing members,
+easy to change and extend grammars in the future: if our `identifier` becomes more complex (accessing members,
 destructuring), we can just concentrate on updating `identifier` parser.
 
 Similarly, a `or_match` combinator will succeed when any of its input parsers succeeds (the first to succeed). It fails
-when no parser matches the remaining tokens. Implicitly this function will perform
-backtracking.
+when no parser matches the remaining tokens.
 
-Already with
+Note: the OR combinator implicitly performs backtracking. Care must be taken with the amount of backtracking a grammar
+will end up doing, as this will really affect performance.
 
 ## Available combinators
 
@@ -52,6 +52,8 @@ Already with
 - `at_least_one(id, element, delim)`: like `many` but requires at least a match of `element` parser.
 - `discard(parser)`: discards the AST created by parser (while retaining its success/failure and advanced token stream).
   Useful to prune unnecessary nodes for later stages.
+- `ref(lambda tokens: parser(tokens))`: creates a reference to `parser` which might not have been defined yet. Useful to
+  create self/mutually recursive parsers.
 
 ## Examples
 
