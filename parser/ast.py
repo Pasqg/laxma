@@ -1,4 +1,5 @@
-from typing import List, Optional, Self
+from collections import deque
+from typing import List, Optional, Self, Callable
 
 
 class AST[RuleId, TokenType]:
@@ -17,13 +18,21 @@ class AST[RuleId, TokenType]:
         return self
 
     def __repr__(self):
-        return self.__print_visit__()
+        results = []
 
-    def __print_visit__(self, level=0):
-        output = f"{'  |' * level}  +- {self.name}: {' '.join(self.matched)}"
-        for child in self.children:
-            output += "\n" + child.__print_visit__(level + 1)
-        return output
+        def visit_fn(node: Self, level: int):
+            results.append(f"{'  |' * level}  +- {node.name}: {' '.join(node.matched)}")
 
-    def __eq__(self, other):
+        self.__visit__(visit_fn)
+        return "\n".join(results)
+
+    def __visit__(self, visit_fn: Callable[[Self, int], None], level: int = 0):
+        stack = deque([(self, level)])
+        while stack:
+            node, level = stack.pop()
+            visit_fn(node, level)
+            for child in reversed(node.children):
+                stack.append((child, level + 1))
+
+    def __eq__(self, other: Self):
         return self.name == other.name and self.matched == other.matched and self.children == other.children
