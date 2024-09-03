@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum, auto
 import re
 
@@ -10,6 +11,7 @@ from parser.util_combinators import ref
 class LispRule(Enum):
     PROGRAM = auto()
     FORM = auto()
+    FUNCTION_DEF = auto()
     ELEMENTS = auto()
     ELEMENT = auto()
 
@@ -23,20 +25,23 @@ class LispRule(Enum):
 def create_parser():
     number = regex(r"\d+|\d+\.\d+")
     string = regex(r'".*"')
-    identifier = regex(r"[a-zA-Z\-\+\.]+")
+    identifier = regex(r"[a-zA-Z\-\+\.0-9]+")
     atom = or_match(LispRule.IDENTIFIER, identifier, number, string)
 
     element = or_match(LispRule.ELEMENT, ref(lambda t: form(t)), atom)
     form = and_match(LispRule.FORM, lit("("), many(LispRule.ELEMENTS, element=element), lit(")"))
 
-    program = at_least_one(LispRule.PROGRAM, element=form)
+    function_def = and_match(LispRule.FUNCTION_DEF, lit("("), lit("fun"), identifier,
+                             form, at_least_one(LispRule.ELEMENTS, element=element), lit(")"))
+
+    program = at_least_one(LispRule.PROGRAM, element=function_def)
 
     return program
 
 
 def lexer():
     return lambda text: TokenStream(
-        re.findall(r'\d+|\d+\.\d+|[a-zA-Z\-\+\.]+|/\*|\*/|".*"|[()]', text))
+        re.findall(r'\d+|\d+\.\d+|[a-zA-Z0-9\-+.]+|/\*|\*/|".*"|[()]', text))
 
 
 if __name__ == "__main__":
@@ -45,7 +50,15 @@ if __name__ == "__main__":
 
     parser = create_parser()
 
+    start = datetime.datetime.now()
     result, ast, remaining = parser(tokens)
+    end = datetime.datetime.now()
 
-    print(ast)
+    print(end - start)
 
+    if not result:
+        print("Could not parse!")
+    elif remaining:
+        print("Could not parse the whole input!")
+    else:
+        print(ast)

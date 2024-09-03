@@ -3,7 +3,7 @@ from typing import Optional
 
 from parser.ast import AST
 from parser.token_stream import TokenStream
-from parser.types import RuleId, TokenType, Combinator
+from parser.types import RuleId, TokenType, Combinator, ParserResult
 
 
 def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
@@ -12,25 +12,26 @@ def match_none(id: Optional[RuleId] = None) -> Combinator[RuleId, TokenType]:
     """
 
     def inner(tokens: TokenStream[TokenType]):
-        return True, AST(id, [], []), tokens
+        return ParserResult.succeeded(AST(id), tokens)
 
     return inner
 
 
-def match_any(id: Optional[RuleId] = None, excluded: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
+def match_any(id: Optional[RuleId] = None, excluded: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[
+    RuleId, TokenType]:
     """
         Matches any one token, excluding the 'excluded' token (if provided).
     """
 
-    def inner(tokens: TokenStream):
+    def inner(tokens: TokenStream) -> ParserResult[TokenType]:
         if tokens:
             if excluded is not None:
                 result, ast, remaining = excluded(tokens)
                 if result:
-                    return False, AST(), tokens
+                    return ParserResult.failed(tokens)
             token, remaining = tokens.advance()
-            return True, AST(id, [token]), remaining
-        return False, AST(), tokens
+            return ParserResult.succeeded(AST(id, [token]), remaining)
+        return ParserResult.failed(tokens)
 
     return inner
 
@@ -47,10 +48,10 @@ def and_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Co
         for rule in rules:
             result, rmatched, remaining = rule(remaining)
             if not result:
-                return False, AST(), tokens
+                return ParserResult.failed(tokens)
             matched += rmatched.matched
             children.append(rmatched)
-        return True, AST(id, matched, children), remaining
+        return ParserResult.succeeded(AST(id, matched, children), remaining)
 
     return inner
 
@@ -64,8 +65,8 @@ def or_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Com
         for rule in rules:
             result, matched, remaining = rule(tokens)
             if result:
-                return True, AST(id, matched.matched, [matched]), remaining
-        return False, AST(), tokens
+                return ParserResult.succeeded(AST(id, matched.matched, [matched]), remaining)
+        return ParserResult.failed(tokens)
 
     return inner
 
@@ -92,7 +93,7 @@ def at_least_one(id: Optional[RuleId] = None, *, element: Combinator[RuleId, Tok
     def inner(tokens):
         element_result, element_ast, element_remaining = first_element(tokens)
         if not element_result:
-            return False, AST(), tokens
+            return ParserResult.failed(tokens)
 
         stack = deque([(element_result, AST(id, element_ast.matched, [element_ast]), element_remaining)])
         while stack:
@@ -101,13 +102,13 @@ def at_least_one(id: Optional[RuleId] = None, *, element: Combinator[RuleId, Tok
             element_result, element_ast, element_remaining = element(remaining)
             if element_result:
                 if delim is None:
-                    stack.append((True, ast.merge(element_ast), element_remaining))
+                    stack.append(ParserResult.succeeded(ast.merge(element_ast), element_remaining))
                 else:
                     for c in element_ast.children:
                         ast = ast.merge(c)
-                    stack.append((True, ast, element_remaining))
+                    stack.append(ParserResult.succeeded(ast, element_remaining))
             else:
                 # If element doesn't match, then return the last result (either no match, or matched until now)
-                return result, ast, remaining
+                return ParserResult(result, ast, remaining)
 
     return inner

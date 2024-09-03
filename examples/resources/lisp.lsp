@@ -1,3 +1,3 @@
 (fun add (x y) (+ x y))
 
-(print (add 2 3))
+(fun main () (print (add 2 3)))

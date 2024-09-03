@@ -1,5 +1,6 @@
 from parser.ast import AST
-from parser.types import Combinator, RuleId, TokenType
+from parser.token_stream import TokenStream
+from parser.types import Combinator, RuleId, TokenType, ParserResult
 
 
 def discard(combinator: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
@@ -8,9 +9,9 @@ def discard(combinator: Combinator[RuleId, TokenType]) -> Combinator[RuleId, Tok
         Meant as an optimisation, i.e. can discard boilerplate, comments etc
     """
 
-    def inner(tokens):
+    def inner(tokens: TokenStream[TokenType]) -> ParserResult[TokenType]:
         result, _, remaining = combinator(tokens)
-        return result, AST(), remaining
+        return ParserResult[TokenType](result, AST(), remaining)
 
     return inner
 
@@ -21,7 +22,7 @@ def ref(combinator: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenTy
         Example: combinator2 = orMath(ref(lambda t: combinator1(t)), match_none)
     """
 
-    def inner(tokens):
+    def inner(tokens: TokenStream[TokenType]) -> ParserResult[TokenType]:
         return combinator(tokens)
 
     return inner
