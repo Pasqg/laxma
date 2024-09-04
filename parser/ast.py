@@ -7,7 +7,7 @@ class AST[RuleId, TokenType]:
                  name: Optional[RuleId] = None,
                  matched: Optional[List[TokenType]] = None,
                  children: Optional[List[Self]] = None):
-        self.name = name
+        self.id = name
         self.matched = matched.copy() if matched else []
         self.children = children.copy() if children else []
 
@@ -17,11 +17,22 @@ class AST[RuleId, TokenType]:
             self.children.append(other)
         return self
 
+    def prune(self):
+        """
+            Prunes the tree by:
+                - replacing nodes that have only one child with the child itself.
+        """
+        children = self.children
+        if len(children) == 1:
+            child = children[0].prune()
+            return AST(self.id, child.matched, child.children)
+        return AST(self.id, self.matched, [child.prune() for child in children])
+
     def __repr__(self):
         results = []
 
         def visit_fn(node: Self, level: int):
-            results.append(f"{'  |' * level}  +- {node.name}: {' '.join(node.matched)}")
+            results.append(f"{'  |' * level}  +- {node.id}: {' '.join(node.matched)}")
 
         self.__visit__(visit_fn)
         return "\n".join(results)
@@ -35,4 +46,4 @@ class AST[RuleId, TokenType]:
                 stack.append((child, level + 1))
 
     def __eq__(self, other: Self):
-        return self.name == other.name and self.matched == other.matched and self.children == other.children
+        return self.id == other.id and self.matched == other.matched and self.children == other.children

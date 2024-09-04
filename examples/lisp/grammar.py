@@ -61,4 +61,4 @@ if __name__ == "__main__":
     elif remaining:
         print("Could not parse the whole input!")
     else:
-        print(ast)
+        print(ast.prune())
