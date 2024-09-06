@@ -82,7 +82,7 @@ This grammar can parse text such as:
 (fun main () (print (add 2 3)))
 ```
 
-The un-pruned AST produced by the parser:
+The pruned AST produced by the parser:
 
 ```
   +- LispRule.PROGRAM: ( fun add ( x y ) ( + x y ) ) ( fun main ( ) ( print ( add 2 3 ) ) )
