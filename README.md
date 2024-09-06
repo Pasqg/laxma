@@ -60,18 +60,15 @@ will end up doing, as this will really affect performance.
 The grammar of a dialect of lisp that accepts specific forms (function definitions) at root level can be described as:
 
 ``` python
-  number = regex(r"\d+|\d+\.\d+")
-  string = regex(r'".*"')
-  identifier = regex(r"[a-zA-Z\-\+\.0-9]+")
-  atom = or_match(LispRule.IDENTIFIER, identifier, number, string)
+number = regex(r"\d+|\d+\.\d+")
+string = regex(r'"[^"]*"')
+identifier = regex(r"[a-zA-Z\-\+0-9]+")
+atom = or_match(LispRule.ATOM, identifier, number, string)
 
-  element = or_match(LispRule.ELEMENT, ref(lambda t: form(t)), atom)
-  form = and_match(LispRule.FORM, lit("("), many(LispRule.ELEMENTS, element=element), lit(")"))
+element = or_match(LispRule.ELEMENT, ref(lambda t: form(t)), atom)
+form = and_match(LispRule.FORM, lit("("), many(LispRule.ELEMENTS, element=element), lit(")"))
 
-  function_def = and_match(LispRule.FUNCTION_DEF, lit("("), lit("fun"), identifier,
-                           form, at_least_one(LispRule.ELEMENTS, element=element), lit(")"))
-
-  program = at_least_one(LispRule.PROGRAM, element=function_def)
+program = at_least_one(LispRule.PROGRAM, element=form)
 ```
 
 This grammar can parse text such as:
@@ -85,46 +82,34 @@ This grammar can parse text such as:
 The pruned AST produced by the parser:
 
 ```
-  +- LispRule.PROGRAM: ( fun add ( x y ) ( + x y ) ) ( fun main ( ) ( print ( add 2 3 ) ) )
-  |  +- LispRule.FUNCTION_DEF: ( fun add ( x y ) ( + x y ) )
-  |  |  +- None: (
-  |  |  +- None: fun
-  |  |  +- None: add
-  |  |  +- LispRule.FORM: ( x y )
-  |  |  |  +- None: (
-  |  |  |  +- LispRule.ELEMENTS: x y
-  |  |  |  |  +- LispRule.ELEMENT: x
-  |  |  |  |  +- LispRule.ELEMENT: y
-  |  |  |  +- None: )
-  |  |  +- LispRule.ELEMENTS: ( + x y )
-  |  |  |  +- None: (
-  |  |  |  +- LispRule.ELEMENTS: + x y
-  |  |  |  |  +- LispRule.ELEMENT: +
-  |  |  |  |  +- LispRule.ELEMENT: x
-  |  |  |  |  +- LispRule.ELEMENT: y
-  |  |  |  +- None: )
-  |  |  +- None: )
-  |  +- LispRule.FUNCTION_DEF: ( fun main ( ) ( print ( add 2 3 ) ) )
-  |  |  +- None: (
-  |  |  +- None: fun
-  |  |  +- None: main
-  |  |  +- LispRule.FORM: ( )
-  |  |  |  +- None: (
-  |  |  |  +- LispRule.ELEMENTS: 
-  |  |  |  +- None: )
-  |  |  +- LispRule.ELEMENTS: ( print ( add 2 3 ) )
-  |  |  |  +- None: (
-  |  |  |  +- LispRule.ELEMENTS: print ( add 2 3 )
-  |  |  |  |  +- LispRule.ELEMENT: print
-  |  |  |  |  +- LispRule.ELEMENT: ( add 2 3 )
-  |  |  |  |  |  +- None: (
-  |  |  |  |  |  +- LispRule.ELEMENTS: add 2 3
-  |  |  |  |  |  |  +- LispRule.ELEMENT: add
-  |  |  |  |  |  |  +- LispRule.ELEMENT: 2
-  |  |  |  |  |  |  +- LispRule.ELEMENT: 3
-  |  |  |  |  |  +- None: )
-  |  |  |  +- None: )
-  |  |  +- None: )
++- LispRule.PROGRAM: ( fun add ( x y ) ( + x y ) ) ( fun main ( ) ( print ( add 2 3 ) ) )
+|  +- LispRule.FORM: ( fun add ( x y ) ( + x y ) )
+|  |  +- LispRule.ELEMENTS: fun add ( x y ) ( + x y )
+|  |  |  +- LispRule.ATOM: fun
+|  |  |  +- LispRule.ATOM: add
+|  |  |  +- LispRule.FORM: ( x y )
+|  |  |  |  +- LispRule.ELEMENTS: x y
+|  |  |  |  |  +- LispRule.ATOM: x
+|  |  |  |  |  +- LispRule.ATOM: y
+|  |  |  +- LispRule.FORM: ( + x y )
+|  |  |  |  +- LispRule.ELEMENTS: + x y
+|  |  |  |  |  +- LispRule.ATOM: +
+|  |  |  |  |  +- LispRule.ATOM: x
+|  |  |  |  |  +- LispRule.ATOM: y
+|  +- LispRule.FORM: ( fun main ( ) ( print ( add 2 3 ) ) )
+|  |  +- LispRule.ELEMENTS: fun main ( ) ( print ( add 2 3 ) )
+|  |  |  +- LispRule.ATOM: fun
+|  |  |  +- LispRule.ATOM: main
+|  |  |  +- LispRule.FORM: ( )
+|  |  |  |  +- LispRule.ELEMENTS: 
+|  |  |  +- LispRule.FORM: ( print ( add 2 3 ) )
+|  |  |  |  +- LispRule.ELEMENTS: print ( add 2 3 )
+|  |  |  |  |  +- LispRule.ATOM: print
+|  |  |  |  |  +- LispRule.FORM: ( add 2 3 )
+|  |  |  |  |  |  +- LispRule.ELEMENTS: add 2 3
+|  |  |  |  |  |  |  +- LispRule.ATOM: add
+|  |  |  |  |  |  |  +- LispRule.ATOM: 2
+|  |  |  |  |  |  |  +- LispRule.ATOM: 3
 ```
 
 # Error reporting
