@@ -10,6 +10,7 @@ packages = [{ include = "parser"}, {include = "examples"}, {include = "tests" }]
 python = "^3.12"
 pytest = "^8.3"
 pytest-cov = "^5.0.0"
+pydantic = "^2.9.0"
 
 
 [build-system]

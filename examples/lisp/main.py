@@ -2,6 +2,7 @@ import logging.config
 
 from datetime import datetime
 
+from examples.lisp.compiler import compile_program
 from examples.lisp.grammar import lexer, create_parser, LispRule
 
 logging.basicConfig(level=logging.INFO)
@@ -23,4 +24,11 @@ if __name__ == "__main__":
         logger.error("Could not parse the whole input!")
     else:
         pruned = ast.prune(excluded={}, use_child_rule={LispRule.ELEMENT})
-        logger.info(pruned)
+
+        result, output = compile_program(pruned)
+        if not result:
+            logger.error(output)
+        else:
+            with open("lisp.py", "w") as file:
+                file.write(output)
+            exec(output)
