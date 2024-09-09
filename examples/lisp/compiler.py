@@ -53,19 +53,53 @@ def compile_builtin(form: Form):
         case "import":
             return f"import {form.elements[1].value}"
         case "print":
-            return f"print({create_body(',')})"
+            return f"print({create_body(', ')})"
         case "+":
-            return create_body('+')
+            return create_body(' + ')
         case "-":
-            return create_body('-')
+            return create_body(' - ')
         case "*":
-            return create_body('*')
+            return create_body(' * ')
         case "/":
-            return create_body('/')
+            return create_body(' / ')
+        case "not":
+            n_args = len(form.elements) - 1
+            if n_args != 1:
+                raise TypeError(f"not takes 1 argument but {n_args} were given!")
+            return ' not ' + create_body('')
+        case "and":
+            return create_body(' and ')
+        case "or":
+            return create_body(' or ')
+        case "<":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"< takes 2 arguments but {n_args} were given!")
+            return create_body(' < ')
+        case ">":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"> takes 2 arguments but {n_args} were given!")
+            return create_body(' > ')
+        case "<=":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"<= takes 2 arguments but {n_args} were given!")
+            return create_body(' <= ')
+        case ">=":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f">= takes 2 arguments but {n_args} were given!")
+            return create_body(' >= ')
+        case "=":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"= takes 2 arguments but {n_args} were given!")
+            return create_body(' == ')
         case "list":
-            return f"list_create({create_body(',')})"
+            return f"list_create({create_body(', ')})"
         case "append":
-            return f"list_append({create_body(',')})"
+            return f"list_append({create_body(', ')})"
         case "map":
             n_args = len(form.elements) - 1
             if n_args != 2:
@@ -79,10 +113,19 @@ def compile_builtin(form: Form):
             if isinstance(args, Atom):
                 args = compile_obj(args)
             elif isinstance(args, Form):
-                args = create_body(',', args.elements)
+                args = create_body(', ', args.elements)
             else:
                 raise TypeError(f"Expected Form or Atom but got {type(args)}")
             return f"lambda {args}: {compile_obj(form.elements[2])}"
+        case "if":
+            n_args = len(form.elements) - 1
+            if n_args != 3:
+                raise TypeError(f"if requires 3 arguments but {n_args} were given!")
+
+            condition = compile_obj(form.elements[1])
+            if_branch = compile_obj(form.elements[2])
+            else_branch = compile_obj(form.elements[3])
+            return f"{if_branch} if {condition} else {else_branch}"
     return ""
 
 

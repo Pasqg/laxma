@@ -23,7 +23,7 @@ class LispRule(Enum):
 STANDALONE_TOKENS = {
     'number': r"\d+|\d+\.\d+",
     'string': r'"[^"]*"',
-    'identifier': r"[a-zA-Z\-\+\*/0-9]+",
+    'identifier': r"[a-zA-Z\-\+\*/0-9<>=]+",
     'parenthesis': "[()]"
 }
 

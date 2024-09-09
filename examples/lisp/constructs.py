@@ -29,7 +29,11 @@ class Program(BaseModel):
 
 
 def builtin_functions():
-    return {'python', 'import', '+', '-', 'x', '/', '*', 'print', 'list', 'append', 'map', 'lambda'}
+    return {'import',
+            '+', '-', 'x', '/', '*',
+            '=', '>', '<', '>=', '<=', 'and', 'or', 'not',
+            'print', 'list', 'append', 'map',
+            'lambda', 'if'}
 
 
 def to_object(ast: AST):
