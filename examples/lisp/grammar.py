@@ -20,10 +20,18 @@ class LispRule(Enum):
     NUMBER = auto()
 
 
+STANDALONE_TOKENS = {
+    'number': r"\d+|\d+\.\d+",
+    'string': r'"[^"]*"',
+    'identifier': r"[a-zA-Z\-\+\*/0-9]+",
+    'parenthesis': "[()]"
+}
+
+
 def create_parser():
-    number = regex(r"\d+|\d+\.\d+")
-    string = regex(r'"[^"]*"')
-    identifier = regex(r"[a-zA-Z\-\+0-9]+")
+    number = regex(STANDALONE_TOKENS['number'])
+    string = regex(STANDALONE_TOKENS['string'])
+    identifier = regex(STANDALONE_TOKENS['identifier'])
     atom = or_match(LispRule.ATOM, identifier, number, string)
 
     element = or_match(LispRule.ELEMENT, ref(lambda t: form(t)), atom)
@@ -35,5 +43,4 @@ def create_parser():
 
 
 def lexer():
-    return lambda text: TokenStream(
-        re.findall(r'\d+|\d+\.\d+|[a-zA-Z0-9\-+.]+|/\*|\*/|"[^"]*"|[()]', text))
+    return lambda text: TokenStream(re.findall('|'.join(STANDALONE_TOKENS.values()), text))
