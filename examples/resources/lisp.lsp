@@ -1,3 +1,7 @@
 (fun add (x y) (+ x y))
 
-(fun main () (print (add (- 3 7) (add (* 2 8) -15))) (print "Done"))
+(fun main ()
+    (print
+        (map (lambda (x) (+ x 2))
+            (append (list 11 41 45) 17 -5)))
+    (print "Done"))

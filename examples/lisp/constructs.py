@@ -29,7 +29,7 @@ class Program(BaseModel):
 
 
 def builtin_functions():
-    return {'python', 'import', '+', '-', 'x', '/', '*', 'print', 'list'}
+    return {'python', 'import', '+', '-', 'x', '/', '*', 'print', 'list', 'append', 'map', 'lambda'}
 
 
 def to_object(ast: AST):
@@ -45,7 +45,8 @@ def to_object(ast: AST):
 
 def to_form(ast: AST):
     if ast.children:
-        return Form(elements=to_object(ast.children[0]))
+        elements = to_object(ast.children[0])
+        return Form(elements=elements if isinstance(elements, list) else [elements])
     return EmptyForm()
 
 

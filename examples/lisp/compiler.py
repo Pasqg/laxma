@@ -62,6 +62,27 @@ def compile_builtin(form: Form):
             return create_body('*')
         case "/":
             return create_body('/')
+        case "list":
+            return f"list_create({create_body(',')})"
+        case "append":
+            return f"list_append({create_body(',')})"
+        case "map":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"map takes 2 arguments but {n_args} were given!")
+
+            func = compile_obj(form.elements[1])
+            collection = compile_obj(form.elements[2])
+            return f"list(map({func}, {collection}))"
+        case "lambda":
+            args = form.elements[1]
+            if isinstance(args, Atom):
+                args = compile_obj(args)
+            elif isinstance(args, Form):
+                args = create_body(',', args.elements)
+            else:
+                raise TypeError(f"Expected Form or Atom but got {type(args)}")
+            return f"lambda {args}: {compile_obj(form.elements[2])}"
     return ""
 
 
@@ -101,7 +122,7 @@ def compile_program(ast: AST) -> tuple[bool, str]:
     if 'main' not in functions:
         return False, f"Function 'main' is not defined!"
 
-    output = ""
+    output = "from lisp_core import *\n\n"
     for function in functions.values():
         output += compile_function(function, 0) + "\n"
 
