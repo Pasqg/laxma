@@ -11,22 +11,22 @@ logger = logging.getLogger("quokko.compiler")
 
 
 def compile_args(ast: AST):
-    return ", ".join(compile_obj(child, 0) for child in islice(ast.children, 1, len(ast.children)))
+    return ", ".join(compile_obj(child) for child in islice(ast.children, 1, len(ast.children)))
 
 
 @singledispatch
-def compile_obj(obj, indent: int):
+def compile_obj(obj, indent: int = 0):
     raise TypeError(f"Could not compile object {obj}")
 
 
 @compile_obj.register
-def _(obj: Atom, indent: int):
+def _(obj: Atom, indent: int = 0):
     current_indent = ' ' * (indent * 4)
     return f"{current_indent}{obj.value}"
 
 
 @compile_obj.register
-def _(obj: Form, indent: int):
+def _(obj: Form, indent: int = 0):
     current_indent = ' ' * (indent * 4)
     builtins = builtin_functions()
 
@@ -39,15 +39,15 @@ def _(obj: Form, indent: int):
     if form_name in builtins:
         return f"{current_indent}{compile_builtin(obj)}"
     else:
-        args = ','.join([compile_obj(element, 0) for element in islice(obj.elements, 1, len(obj.elements))])
+        args = ','.join([compile_obj(element) for element in islice(obj.elements, 1, len(obj.elements))])
         return f"{current_indent}{form_name}({args})"
 
 
 def compile_builtin(form: Form):
     function_name = form.elements[0].value
 
-    def create_body(delim):
-        return delim.join([compile_obj(element, 0) for element in islice(form.elements, 1, len(form.elements))])
+    def create_body(delim, elements: islice | list = islice(form.elements, 1, len(form.elements))):
+        return delim.join([compile_obj(element) for element in elements])
 
     match function_name:
         case "import":
