@@ -32,17 +32,17 @@ def builtin_functions():
     return {'import',
             '+', '-', 'x', '/', '*',
             '=', '>', '<', '>=', '<=', 'and', 'or', 'not',
-            'print', 'list', 'append', 'map',
+            'print', 'list', 'append', 'map', 'first',
             'lambda', 'if'}
 
 
 def to_object(ast: AST):
-    match ast.id:
-        case LispRule.ELEMENTS:
+    match ast.id.value:
+        case LispRule.ELEMENTS.value:
             return [to_object(child) for child in ast.children]
-        case LispRule.ATOM:
+        case LispRule.ATOM.value:
             return Atom(value=ast.matched[0])
-        case LispRule.FORM:
+        case LispRule.FORM.value:
             return to_form(ast)
     return None
 
