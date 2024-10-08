@@ -2,8 +2,8 @@ import logging.config
 
 from datetime import datetime
 
-from examples.lisp.compiler import compile_program
-from examples.lisp.grammar import lexer, create_parser, LispRule
+from compiler import compile_program
+from grammar import lexer, create_parser, LispRule
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('quokko')
@@ -24,6 +24,7 @@ if __name__ == "__main__":
         logger.error("Could not parse the whole input!")
     else:
         pruned = ast.prune(excluded={}, use_child_rule={LispRule.ELEMENT, LispRule.ELEMENTS})
+        print(pruned)
 
         result, output = compile_program(pruned)
         if not result:

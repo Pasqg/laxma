@@ -32,8 +32,8 @@ def builtin_functions():
     return {'import',
             '+', '-', 'x', '/', '*',
             '=', '>', '<', '>=', '<=', 'and', 'or', 'not',
-            'print', 'list', 'append', 'map', 'first',
-            'lambda', 'if'}
+            'print', 'list', 'append', 'map', 'filter',
+            'first', 'rest', 'lambda', 'if'}
 
 
 def to_object(ast: AST):

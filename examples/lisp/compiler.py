@@ -3,7 +3,7 @@ from functools import singledispatch
 
 from itertools import islice
 
-from examples.lisp.constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
+from constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
     Function, Atom
 from parser.ast import AST
 
@@ -46,8 +46,14 @@ def _(obj: Form, indent: int = 0):
 def compile_builtin(form: Form):
     function_name = form.elements[0].value
 
-    def create_body(delim, elements: islice | list = islice(form.elements, 1, len(form.elements))):
+    def create_body(delim: str, elements: islice | list = islice(form.elements, 1, len(form.elements))):
         return delim.join([compile_obj(element) for element in elements])
+
+    def create_op(op: str, form: Form, n_args: int = 2):
+        args = len(form.elements) - 1
+        if args != n_args:
+            raise TypeError(f"'{op}' takes {n_args} arguments but {args} were given!")
+        return create_body(f' {op} ')
 
     match function_name:
         case "import":
@@ -65,49 +71,47 @@ def compile_builtin(form: Form):
         case "not":
             n_args = len(form.elements) - 1
             if n_args != 1:
-                raise TypeError(f"not takes 1 argument but {n_args} were given!")
+                raise TypeError(f"'not' takes 1 argument but {n_args} were given!")
             return ' not ' + create_body('')
-        case "and":
-            return create_body(' and ')
-        case "or":
-            return create_body(' or ')
-        case "<":
-            n_args = len(form.elements) - 1
-            if n_args != 2:
-                raise TypeError(f"< takes 2 arguments but {n_args} were given!")
-            return create_body(' < ')
-        case ">":
-            n_args = len(form.elements) - 1
-            if n_args != 2:
-                raise TypeError(f"> takes 2 arguments but {n_args} were given!")
-            return create_body(' > ')
-        case "<=":
-            n_args = len(form.elements) - 1
-            if n_args != 2:
-                raise TypeError(f"<= takes 2 arguments but {n_args} were given!")
-            return create_body(' <= ')
-        case ">=":
-            n_args = len(form.elements) - 1
-            if n_args != 2:
-                raise TypeError(f">= takes 2 arguments but {n_args} were given!")
-            return create_body(' >= ')
+        case "and" | "or":
+            return create_body(f' {function_name} ')
+        case "<" | ">" | "<=" | ">=":
+            return create_op(function_name, form)
         case "=":
             n_args = len(form.elements) - 1
             if n_args != 2:
-                raise TypeError(f"= takes 2 arguments but {n_args} were given!")
+                raise TypeError(f"'=' takes 2 arguments but {n_args} were given!")
             return create_body(' == ')
         case "list":
             return f"list_create({create_body(', ')})"
+        case "first":
+            n_args = len(form.elements) - 1
+            if n_args != 1:
+                raise TypeError(f"'first' takes 1 argument but {n_args} were given!")
+            return f"{create_body('')}[0]"
+        case "rest":
+            n_args = len(form.elements) - 1
+            if n_args != 1:
+                raise TypeError(f"'rest' takes 1 argument but {n_args} were given!")
+            return f"{create_body('')}[1:]"
         case "append":
             return f"list_append({create_body(', ')})"
         case "map":
             n_args = len(form.elements) - 1
             if n_args != 2:
-                raise TypeError(f"map takes 2 arguments but {n_args} were given!")
+                raise TypeError(f"'map' takes 2 arguments but {n_args} were given!")
 
             func = compile_obj(form.elements[1])
             collection = compile_obj(form.elements[2])
             return f"list(map({func}, {collection}))"
+        case "filter":
+            n_args = len(form.elements) - 1
+            if n_args != 2:
+                raise TypeError(f"'filter' takes 2 arguments but {n_args} were given!")
+
+            func = compile_obj(form.elements[1])
+            collection = compile_obj(form.elements[2])
+            return f"list(filter({func}, {collection}))"
         case "lambda":
             args = form.elements[1]
             if isinstance(args, Atom):
@@ -125,7 +129,7 @@ def compile_builtin(form: Form):
             condition = compile_obj(form.elements[1])
             if_branch = compile_obj(form.elements[2])
             else_branch = compile_obj(form.elements[3])
-            return f"{if_branch} if {condition} else {else_branch}"
+            return f"({if_branch}) if ({condition}) else ({else_branch})"
     return ""
 
 
