@@ -34,7 +34,7 @@ def enable_toggle(env, toggle_name, toggle_display=""):
     print(f"{"Enabled" if env[toggle_name] else "Disabled"} {toggle_display}")
 
 
-def execute(tokens, env):
+def execute(tokens, env, glob):
     result, ast, remaining = parser(tokens)
     if not result:
         print("ERROR: Could not parse!")
@@ -58,12 +58,13 @@ def execute(tokens, env):
                 file.write(output)
 
             start = datetime.now()
-            exec(output)
+            exec(output, glob)
             if env[PRINT_EXECUTION_TIME]:
                 print(f"Executed in {datetime.now() - start}")
 
 
 if __name__ == "__main__":
+    glob = {}
     environment = {
         PRINT_AST: True,
         PRINT_EXECUTION_TIME: True,
@@ -82,6 +83,6 @@ if __name__ == "__main__":
             tokens = lexer(user_form.replace("\n", " "))
 
             try:
-                execute(tokens, environment)
+                execute(tokens, environment, glob)
             except Exception as e:
                 print(traceback.format_exc())
