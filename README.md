@@ -1,4 +1,4 @@
-# Quokko
+# Laxma
 
 This project provides simple parser combinators in python. Tokens can have any type.
 
