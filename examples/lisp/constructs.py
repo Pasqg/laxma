@@ -30,7 +30,7 @@ class Program(BaseModel):
 
 def builtin_functions():
     return {'import',
-            '+', '-', 'x', '/', '*',
+            '++', '+', '-', 'x', '/', '*',
             '=', '>', '<', '>=', '<=', 'and', 'or', 'not',
             'print', 'list', 'append', 'map', 'filter',
             'first', 'rest', 'lambda', 'if'}

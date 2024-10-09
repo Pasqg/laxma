@@ -7,7 +7,7 @@ from constructs import Form, builtin_functions, to_object, is_function_def, is_i
     Function, Atom
 from parser.ast import AST
 
-logger = logging.getLogger("quokko.compiler")
+logger = logging.getLogger("laxma.compiler")
 
 
 def compile_args(ast: AST):
@@ -94,7 +94,7 @@ def compile_builtin(form: Form):
             if n_args != 1:
                 raise TypeError(f"'rest' takes 1 argument but {n_args} were given!")
             return f"{create_body('')}[1:]"
-        case "append":
+        case "++":
             return f"list_append({create_body(', ')})"
         case "map":
             n_args = len(form.elements) - 1

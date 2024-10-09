@@ -6,7 +6,7 @@ from compiler import compile_program
 from grammar import lexer, create_parser, LispRule
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('quokko')
+logger = logging.getLogger('lisp-example')
 
 if __name__ == "__main__":
     with open("../resources/lisp.lsp") as file:
