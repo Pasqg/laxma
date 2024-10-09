@@ -60,7 +60,8 @@ def to_function(form: Form):
     if function_name in builtins:
         raise SyntaxError(f"Builtin function {function_name} is being redefined.")
 
-    args = [arg.value for arg in form.elements[2].elements]
+    args = ([arg.value for arg in form.elements[2].elements]
+            if hasattr(form.elements[2], "elements") else form.elements[2].value)
     return Function(name=function_name, args=args, body=islice(form.elements, 3, len(form.elements)))
 
 

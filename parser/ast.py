@@ -57,8 +57,9 @@ class AST[RuleId, TokenType]:
                 rule_id = child.id
             return AST(rule_id, child.matched, child.children)
         return AST(self.id, self.matched,
-                   [child.prune(excluded=excluded, use_child_rule=use_child_rule) for child in children if
-                    child.id is not None or len(child.children) > 1])
+                   [child.prune(excluded=excluded, use_child_rule=use_child_rule)
+                    for child in children
+                    if child.id is not None or len(child.children) > 1])
 
     def __repr__(self):
         results = []
