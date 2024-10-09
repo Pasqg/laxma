@@ -26,7 +26,7 @@ if __name__ == "__main__":
         pruned = ast.prune(excluded={LispRule.PROGRAM}, use_child_rule={LispRule.ELEMENT, LispRule.ELEMENTS})
         print(pruned)
 
-        result, output = compile_program(pruned)
+        result, output, _ = compile_program(pruned)
         if not result:
             logger.error(output)
         else:

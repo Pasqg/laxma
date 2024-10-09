@@ -152,25 +152,41 @@ def compile_function(function: Function, indent: int):
     return output + "\n"
 
 
-def compile_program(ast: AST) -> tuple[bool, str]:
-    if not ast.children:
-        return True, ""
-
-    objects = [to_object(child) for child in ast.children]
+def validate(objects) -> tuple[bool, str]:
     for obj in objects:
         if not isinstance(obj, Form):
             return False, f"Got unexpected object at root-level: {obj}"
         if not is_function_def(obj) and is_import(obj):
             return False, f"Expected only function definitions and imports at root-level but got: {obj}"
+    return True, ""
 
-    functions = {form.elements[1].value: to_function(form) for form in objects if is_function_def(form)}
 
-    # todo should be limited to the entry point file
-    if 'main' not in functions:
-        return False, f"Function 'main' is not defined!"
+def compile_program(ast: AST, ext_funcs: dict[str, object] = None, is_repl: bool = False) -> tuple[bool, str, dict]:
+    if ext_funcs is None:
+        ext_funcs = {}
+
+    if not ast.children:
+        return True, "", {}
+
+    objects = [to_object(child) for child in ast.children]
+
+    validation_result, validation_message = validate(objects)
+    if not validation_result:
+        return False, validation_message, {}
+
+    functions = {
+        **ext_funcs,
+        **{form.elements[1].value: to_function(form) for form in objects if is_function_def(form)},
+    }
+
+    if not is_repl and 'main' not in functions:
+        return False, f"Function 'main' is not defined!", {}
 
     output = "from lisp_core import *\n\n"
     for function in functions.values():
         output += compile_function(function, 0) + "\n"
 
-    return True, output
+    if is_repl:
+        output += "\n".join([compile_obj(form) for form in objects if not is_function_def(form)]) + "\n\n"
+
+    return True, output, functions
