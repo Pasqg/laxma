@@ -8,6 +8,9 @@ class UnrecognizedType:
     def is_compatible(self, other_type):
         return False
 
+    def __eq__(self, other):
+        return isinstance(other, UnrecognizedType)
+
 
 class PrimitiveType(Enum):
     Number = "number"
@@ -21,6 +24,12 @@ class PrimitiveType(Enum):
             return self.value == other_type.value
         return False
 
+    def __repr__(self):
+        return self.name()
+
+    def __eq__(self, other):
+        return isinstance(other, PrimitiveType) and self.value == other.value
+
 
 class EmptyList:
     def name(self):
@@ -31,13 +40,19 @@ class EmptyList:
                 or isinstance(other_type, ListType)
                 or isinstance(other_type, PossibleEmptyList))
 
+    def __repr__(self):
+        return self.name()
+
+    def __eq__(self, other):
+        return isinstance(other, EmptyList)
+
 
 class ListType:
     def __init__(self, element):
         self.element = element
 
     def name(self):
-        return "List"
+        return f"List<{self.element.name()}>"
 
     def is_compatible(self, other_type):
         if isinstance(other_type, EmptyList):
@@ -47,6 +62,12 @@ class ListType:
             return self.element.is_compatible(other_type.element)
 
         return False
+
+    def __repr__(self):
+        return self.name()
+
+    def __eq__(self, other):
+        return isinstance(other, ListType) and self.element == other.element
 
 
 class PossibleEmptyList:
@@ -64,3 +85,6 @@ class PossibleEmptyList:
             return self.element.is_compatible(other_type.element)
 
         return False
+
+    def __eq__(self, other):
+        return isinstance(other, PossibleEmptyList) and self.element == other.element

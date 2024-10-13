@@ -38,3 +38,12 @@ def test_list_types_compatibility():
     assert ListType(PrimitiveType.String).is_compatible(EmptyList())
     assert PossibleEmptyList(PrimitiveType.Number).is_compatible(EmptyList())
     assert PossibleEmptyList(PrimitiveType.String).is_compatible(EmptyList())
+
+
+def test_type_names():
+    assert PrimitiveType.String.name() == "string"
+    assert PrimitiveType.Number.name() == "number"
+    assert EmptyList().name() == "EmptyList"
+    assert ListType(element=PrimitiveType.String).name() == "List<string>"
+    assert ListType(element=PrimitiveType.Number).name() == "List<number>"
+    assert ListType(element=EmptyList()).name() == "List<EmptyList>"
