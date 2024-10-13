@@ -161,7 +161,7 @@ def validate(objects) -> tuple[bool, str]:
     return True, ""
 
 
-def compile_program(ast: AST, ext_funcs: dict[str, object] = None, is_repl: bool = False) -> tuple[bool, str, dict]:
+def compile_program(ast: AST, ext_funcs: dict[str, Function] = None, is_repl: bool = False) -> tuple[bool, str, dict]:
     if ext_funcs is None:
         ext_funcs = {}
 
@@ -174,19 +174,22 @@ def compile_program(ast: AST, ext_funcs: dict[str, object] = None, is_repl: bool
     if not validation_result:
         return False, validation_message, {}
 
-    functions = {
+    namespace = {
         **ext_funcs,
         **{form.elements[1].value: to_function(form) for form in objects if is_function_def(form)},
     }
 
-    if not is_repl and 'main' not in functions:
+    if not is_repl and 'main' not in namespace:
         return False, f"Function 'main' is not defined!", {}
 
-    output = "from lisp_core import *\n\n"
-    for function in functions.values():
-        output += compile_function(function, 0) + "\n"
+    output = convert_to_output(is_repl, namespace, objects)
+    return True, output, namespace
 
+
+def convert_to_output(is_repl, namespace, objects):
+    output = "from lisp_core import *\n\n"
+    for function in namespace.values():
+        output += compile_function(function, 0) + "\n"
     if is_repl:
         output += "\n".join([compile_obj(form) for form in objects if not is_function_def(form)]) + "\n\n"
-
-    return True, output, functions
+    return output
