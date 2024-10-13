@@ -8,11 +8,15 @@ EMPTY_LIST = Form(elements=[Atom(value="list")])
 STRING = Atom(value="\"123\"")
 VAR = Atom(value="x")
 NUMBER = Atom(value=123)
+BOOL = Atom(value="false")
 
 
 def list_of(*forms):
     return Form(elements=[Atom(value="list")] + [form for form in forms])
 
+def test_bool_type_inference():
+    assert infer_type(Atom(value="false"), {}) == (True, PrimitiveType.Bool)
+    assert infer_type(Atom(value="true"), {}) == (True, PrimitiveType.Bool)
 
 def test_atom_type_inference():
     assert infer_type(STRING, {}) == (True, PrimitiveType.String)

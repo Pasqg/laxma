@@ -15,6 +15,7 @@ class UnrecognizedType:
 class PrimitiveType(Enum):
     Number = "number"
     String = "string"
+    Bool = "bool"
 
     def name(self):
         return self.value

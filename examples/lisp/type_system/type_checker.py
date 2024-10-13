@@ -14,6 +14,8 @@ def _(atom: Atom, namespace: dict[str, object]) -> tuple[bool, PrimitiveType | U
     if isinstance(atom.value, str):
         if atom.value == "\"\"" or (atom.value.startswith("\"") and atom.value.endswith("\"")):
             return True, PrimitiveType.String
+        if atom.value == "true" or atom.value == "false":
+            return True, PrimitiveType.Bool
         if atom.value in namespace:
             return True, namespace[atom.value]
         try:
