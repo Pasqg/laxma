@@ -110,7 +110,7 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                         return False, list_type
 
                     if is_list(list_type):
-                        return True, list_type
+                        return True, PossibleEmptyList(element=list_type.element)
 
                     return False, f"'rest' expected a non-empty List type but got '{list_type.name()}'"
 

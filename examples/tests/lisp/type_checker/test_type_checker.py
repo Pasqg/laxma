@@ -21,29 +21,30 @@ def test_bool_type_inference():
 
 def test_atom_type_inference():
     assert infer_type(STRING, {}) == (True, PrimitiveType.String)
+    assert infer_type(Atom(value="\"\""), {}) == (True, PrimitiveType.String)
     assert infer_type(NUMBER, {}) == (True, PrimitiveType.Number)
     assert infer_type(Atom(value=123.456), {}) == (True, PrimitiveType.Number)
 
 
 def test_list_type_inference():
     assert infer_type(EMPTY_LIST, {}) == (True, EmptyList())
-    assert (infer_type(Form(elements=[Atom(value="list"), Atom(value="")]), {})
+    assert (infer_type(Form(elements=[Atom(value="list"), STRING]), {})
             == (True, ListType(element=PrimitiveType.String)))
     assert (infer_type(Form(elements=[Atom(value="list"), NUMBER]), {})
             == (True, ListType(element=PrimitiveType.Number)))
     assert (infer_type(Form(elements=[Atom(value="list"), NUMBER, Atom(value=123.23)]), {})
             == (True, ListType(element=PrimitiveType.Number)))
-    assert (infer_type(Form(elements=[Atom(value="list"), NUMBER, Atom(value="")]), {})
-            == (False, "List 1-th element has type 'string' but expected 'number'"))
 
     assert (infer_type(Form(elements=[Atom(value="list"), EMPTY_LIST]), {})
             == (True, ListType(element=EmptyList())))
-
     assert (infer_type(Form(elements=[Atom(value="list"), EMPTY_LIST, EMPTY_LIST]), {})
             == (True, ListType(element=EmptyList())))
+
+    assert (infer_type(Form(elements=[Atom(value="list"), NUMBER, STRING]), {})
+            == (False, "List 1-th element has type 'string' but expected 'number'"))
     assert (infer_type(
-        Form(elements=[Atom(value="list"), Form(elements=[Atom(value="list"), NUMBER]), EMPTY_LIST]), {})
-            == (True, ListType(element=EmptyList())))
+        Form(elements=[Atom(value="list"), list_of(NUMBER), EMPTY_LIST]), {})
+            == (False, "List 1-th element has type 'EmptyList' but expected 'List<number>'"))
 
 
 def test_first_type_inference():
@@ -55,10 +56,29 @@ def test_first_type_inference():
             == (False, "'first' expected a non-empty List type but got 'number'"))
     assert (infer_type(Form(elements=[first_form, STRING]), {})
             == (False, "'first' expected a non-empty List type but got 'string'"))
-    assert (infer_type(Form(elements=[first_form, Form(elements=[Atom(value="list"), NUMBER])]), {})
+    assert (infer_type(Form(elements=[first_form, list_of(NUMBER)]), {})
             == (True, PrimitiveType.Number))
-    assert (infer_type(Form(elements=[first_form, Form(elements=[Atom(value="list"), STRING])]), {})
+    assert (infer_type(Form(elements=[first_form, list_of(STRING)]), {})
             == (True, PrimitiveType.String))
+    assert (infer_type(Form(elements=[first_form, list_of(list_of(NUMBER))]), {})
+            == (True, ListType(element=PrimitiveType.Number)))
+
+
+def test_rest_type_inference():
+    first_form = Atom(value="rest")
+
+    assert (infer_type(Form(elements=[first_form, EMPTY_LIST]), {})
+            == (False, "'rest' expected a non-empty List type but got 'EmptyList'"))
+    assert (infer_type(Form(elements=[first_form, NUMBER]), {})
+            == (False, "'rest' expected a non-empty List type but got 'number'"))
+    assert (infer_type(Form(elements=[first_form, STRING]), {})
+            == (False, "'rest' expected a non-empty List type but got 'string'"))
+    assert (infer_type(Form(elements=[first_form, list_of(NUMBER)]), {})
+            == (True, PossibleEmptyList(element=PrimitiveType.Number)))
+    assert (infer_type(Form(elements=[first_form, list_of(STRING)]), {})
+            == (True, PossibleEmptyList(element=PrimitiveType.String)))
+    assert (infer_type(Form(elements=[first_form, list_of(list_of(NUMBER))]), {})
+            == (True, PossibleEmptyList(element=ListType(element=PrimitiveType.Number))))
 
 
 def test_append_type_inference():
@@ -79,7 +99,7 @@ def test_append_type_inference():
     assert (infer_type(Form(elements=[append_op, list_of(STRING), list_of(list_of(STRING))]), {})
             == (True, ListType(element=ListType(element=PrimitiveType.String))))
     assert (infer_type(Form(elements=[append_op, list_of(EMPTY_LIST), list_of(list_of(STRING))]), {})
-            == (True, ListType(element=ListType(element=PrimitiveType.String))))
+            == (False, "Cannot append element of type 'List<EmptyList>' to 'List<List<string>>'"))
 
     assert (infer_type(Form(elements=[append_op, NUMBER, NUMBER]), {})
             == (False, "Cannot append element of type 'number' to 'number'"))
