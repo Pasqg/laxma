@@ -76,7 +76,7 @@ class PossibleEmptyList:
         self.element = element
 
     def name(self):
-        return "PossibleEmptyList"
+        return f"PossibleEmptyList<{self.element.name()}>"
 
     def is_compatible(self, other_type):
         if isinstance(other_type, EmptyList):

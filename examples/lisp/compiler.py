@@ -3,7 +3,7 @@ from functools import singledispatch
 
 from itertools import islice
 
-from constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
+from examples.lisp.constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
     Function, Atom
 from parser.ast import AST
 
@@ -22,7 +22,10 @@ def compile_obj(obj, indent: int = 0):
 @compile_obj.register
 def _(obj: Atom, indent: int = 0):
     current_indent = ' ' * (indent * 4)
-    return f"{current_indent}{obj.value}"
+    value = obj.value
+    if obj.value == 'true' or obj.value == 'false':
+        value = obj.value.capitalize()
+    return f"{current_indent}{value}"
 
 
 @compile_obj.register

@@ -1,8 +1,7 @@
 from examples.lisp.constructs import Atom, Form
 
-
 from examples.lisp.type_system.type_checker import infer_type
-from examples.lisp.type_system.types import PrimitiveType, EmptyList, ListType
+from examples.lisp.type_system.types import PrimitiveType, EmptyList, ListType, PossibleEmptyList
 
 EMPTY_LIST = Form(elements=[Atom(value="list")])
 STRING = Atom(value="\"123\"")
@@ -14,9 +13,11 @@ BOOL = Atom(value="false")
 def list_of(*forms):
     return Form(elements=[Atom(value="list")] + [form for form in forms])
 
+
 def test_bool_type_inference():
     assert infer_type(Atom(value="false"), {}) == (True, PrimitiveType.Bool)
     assert infer_type(Atom(value="true"), {}) == (True, PrimitiveType.Bool)
+
 
 def test_atom_type_inference():
     assert infer_type(STRING, {}) == (True, PrimitiveType.String)
@@ -95,3 +96,32 @@ def test_append_type_inference():
     assert (infer_type(
         Form(elements=[append_op, NUMBER, list_of(STRING)]), {})
             == (False, "Cannot append element of type 'number' to 'List<string>'"))
+
+
+def test_if_type_inference():
+    if_op = Atom(value="if")
+
+    assert (infer_type(Form(elements=[if_op, NUMBER, NUMBER, NUMBER]), {})
+            == (False, f"Expected if condition to have type 'bool' but got 'number'"))
+    assert (infer_type(Form(elements=[if_op, BOOL, EMPTY_LIST, NUMBER]), {})
+            == (False, f"Incompatible types in if branches: 'EmptyList' and 'number'"))
+    assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, EMPTY_LIST]), {})
+            == (False, f"Incompatible types in if branches: 'number' and 'EmptyList'"))
+    assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, list_of(NUMBER)]), {})
+            == (False, f"Incompatible types in if branches: 'number' and 'List<number>'"))
+    assert (infer_type(Form(elements=[if_op, BOOL, list_of(STRING), list_of(NUMBER)]), {})
+            == (False, f"Incompatible types in if branches: 'List<string>' and 'List<number>'"))
+    assert (infer_type(Form(elements=[if_op, BOOL, list_of(EMPTY_LIST), list_of(list_of(NUMBER))]), {})
+            == (False, f"Incompatible types in if branches: 'List<EmptyList>' and 'List<List<number>>'"))
+
+    assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, NUMBER]), {})
+            == (True, PrimitiveType.Number))
+    assert (infer_type(Form(elements=[if_op, BOOL, list_of(NUMBER), list_of(NUMBER)]), {})
+            == (True, ListType(element=PrimitiveType.Number)))
+    assert (infer_type(Form(elements=[if_op, BOOL, list_of(list_of(NUMBER)), list_of(list_of(NUMBER))]), {})
+            == (True, ListType(element=ListType(element=PrimitiveType.Number))))
+    assert (infer_type(Form(elements=[if_op, BOOL, EMPTY_LIST, EMPTY_LIST]), {})
+            == (True, EmptyList()))
+
+    assert (infer_type(Form(elements=[if_op, BOOL, list_of(NUMBER), EMPTY_LIST]), {})
+            == (True, PossibleEmptyList(element=PrimitiveType.Number)))

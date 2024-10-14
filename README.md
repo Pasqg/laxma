@@ -57,7 +57,9 @@ will end up doing, as this will really affect performance.
 
 ## Examples
 
-The grammar of a dialect of lisp that accepts specific forms (function definitions) at root level can be described as:
+See [examples/lisp](examples/lisp)
+
+The grammar of a simple dialect of lisp can be described as:
 
 ``` python
 number = regex(r"\d+|\d+\.\d+")
