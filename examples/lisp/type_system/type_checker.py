@@ -12,12 +12,51 @@ def is_bool_literal(atom: Atom):
     return atom.value == "true" or atom.value == "false"
 
 
+def is_numeric_literal(atom: Atom):
+    return isinstance(atom.value, int) or isinstance(atom.value, float)
+
+
 def is_empty_list(t):
     return isinstance(t, EmptyList)
 
 
 def is_list(t):
     return isinstance(t, ListType)
+
+
+def is_possibly_empty(t2):
+    return isinstance(t2, PossibleEmptyList)
+
+
+def infer_element_types(list1, list2) -> tuple[bool, object]:
+    def inner(t1, t2) -> tuple[bool, object]:
+        if is_list(t1) and is_list(t2):
+            result, element_type = infer_element_types(t1.element, t2.element)
+            if not result:
+                return False, f"Incompatible list types '{t1.name()}', '{t2.name()}'"
+            return True, ListType(element=element_type)
+
+
+        if is_list(t1) and is_empty_list(t2):
+            return True, PossibleEmptyList(element=t1.element)
+
+        if is_list(t1) and is_possibly_empty(t2):
+            result, element_type = infer_element_types(t1.element, t2.element)
+            if not result:
+                return False, f"Incompatible list types '{t1.name()}', '{t2.name()}'"
+            return True, PossibleEmptyList(element=t1.element)
+
+        return False, ""
+
+    result, list_type = inner(list2, list1)
+    if not result:
+        result, list_type = inner(list1, list2)
+        if not result:
+            if list1 == list2:
+                return True, list1
+            return False, f"Incompatible list types '{list1.name()}', '{list2.name()}'"
+
+    return True, list_type
 
 
 @singledispatch
@@ -34,6 +73,7 @@ def _(atom: Atom, namespace: dict[str, object]) -> tuple[bool, PrimitiveType | U
             return True, PrimitiveType.Bool
         if atom.value in namespace:
             return True, namespace[atom.value]
+
         try:
             float(atom.value)
             return True, PrimitiveType.Number
@@ -43,7 +83,8 @@ def _(atom: Atom, namespace: dict[str, object]) -> tuple[bool, PrimitiveType | U
                 return True, PrimitiveType.Number
             except:
                 return False, f"Cannot infer type of '{atom.value}'"
-    if isinstance(atom.value, int) or isinstance(atom.value, float):
+
+    if is_numeric_literal(atom):
         return True, PrimitiveType.Number
     return False, UnrecognizedType()
 
@@ -70,8 +111,13 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                         result, i_type = infer_type(elements[i], namespace)
                         if not result:
                             return False, i_type
-                        if i_type != element_type:
-                            return False, f"List {i - 1}-th element has type '{i_type.name()}' but expected '{element_type.name()}'"
+
+                        result, resulting_list_type = infer_element_types(ListType(element=element_type), ListType(element=i_type))
+                        if not result:
+                            #todo: save all valid i_type in a set (+ first element_type) and add them to this error message
+                            return False, f"List {i - 1}-th element has type '{i_type.name()}' which is not compatible with inferred type '{element_type.name()}'"
+
+                        element_type = resulting_list_type.element
 
                     return True, ListType(element_type)
 
@@ -88,9 +134,10 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                     if is_empty_list(list_type):
                         return True, ListType(element_type)
 
-                    if is_list(list_type) or isinstance(list_type, PossibleEmptyList):
-                        if list_type.element.is_compatible(element_type):
-                            return True, ListType(element_type)
+                    if is_list(list_type) or is_possibly_empty(list_type):
+                        result, resulting_list_type = infer_element_types(ListType(element=element_type), list_type)
+                        if result:
+                            return True, resulting_list_type
 
                     return False, f"Cannot append element of type '{element_type.name()}' to '{list_type.name()}'"
 
@@ -132,11 +179,10 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
 
                     if true_branch_type != false_branch_type:
                         maybe_empty_predicate = (lambda t1, t2: is_list(t1) and
-                                                                (is_empty_list(t2) or isinstance(t2,
-                                                                                                 PossibleEmptyList)))
-                        is_possible_empty_list = (maybe_empty_predicate(true_branch_type, false_branch_type)
-                                                  or maybe_empty_predicate(false_branch_type, true_branch_type))
-                        if is_possible_empty_list:
+                                                                (is_empty_list(t2) or is_possibly_empty(t2)))
+                        possible_empty_list = (maybe_empty_predicate(true_branch_type, false_branch_type)
+                                               or maybe_empty_predicate(false_branch_type, true_branch_type))
+                        if possible_empty_list:
                             return True, PossibleEmptyList(true_branch_type.element if isinstance(true_branch_type,
                                                                                                   ListType) else false_branch_type.element)
 
