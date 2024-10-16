@@ -28,34 +28,32 @@ def is_possibly_empty(t2):
     return isinstance(t2, PossibleEmptyList)
 
 
-def infer_element_types(list1, list2) -> tuple[bool, object]:
-    def inner(t1, t2) -> tuple[bool, object]:
-        if is_list(t1) and is_list(t2):
-            result, element_type = infer_element_types(t1.element, t2.element)
-            if not result:
-                return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
-            return True, ListType(element=element_type)
+def infer_element_types(t1, t2) -> tuple[bool, object]:
+    if is_empty_list(t1) and is_empty_list(t2):
+        return True, t1
 
-        if (is_list(t1) or is_possibly_empty(t1)) and is_empty_list(t2):
-            return True, PossibleEmptyList(element=t1.element)
+    if (is_list(t1) or is_possibly_empty(t1)) and is_empty_list(t2):
+        return True, PossibleEmptyList(element=t1.element)
 
-        if (is_list(t1) or is_possibly_empty(t1)) and is_possibly_empty(t2):
-            result, element_type = infer_element_types(t1.element, t2.element)
-            if not result:
-                return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
-            return True, PossibleEmptyList(element=t1.element)
+    if (is_list(t2) or is_possibly_empty(t2)) and is_empty_list(t1):
+        return True, PossibleEmptyList(element=t2.element)
 
-        return False, ""
-
-    result, list_type = inner(list2, list1)
-    if not result:
-        result, list_type = inner(list1, list2)
+    if is_list(t1) and is_list(t2):
+        result, element_type = infer_element_types(t1.element, t2.element)
         if not result:
-            if list1 == list2:
-                return True, list1
-            return False, f"Incompatible list types '{list1.name()}' and '{list2.name()}'"
+            return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
+        return True, ListType(element=element_type)
 
-    return True, list_type
+    if (is_list(t1) or is_possibly_empty(t1)) and (is_list(t2) or is_possibly_empty(t2)):
+        result, element_type = infer_element_types(t1.element, t2.element)
+        if not result:
+            return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
+        return True, PossibleEmptyList(element=element_type)
+
+    if t1 == t2:
+        return True, t1
+
+    return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
 
 
 @singledispatch
