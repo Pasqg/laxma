@@ -16,6 +16,7 @@ class PrimitiveType(Enum):
     Number = "number"
     String = "string"
     Bool = "bool"
+    Void = "void"
 
     def name(self):
         return self.value

@@ -202,4 +202,28 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
 
                     return True, true_branch_type
 
+                case "print":
+                    return infer_type(elements[1], namespace)
+
         return False, f"Unrecognized form '{name}', cannot infer type"
+
+
+def check_types(namespace: dict[str, Function]) -> tuple[bool, dict[str, object]]:
+    namespace_types = {}
+    for name, function in namespace.items():
+        result, inferred_type = infer_function_type(function, namespace_types)
+        if result:
+            namespace_types[name] = inferred_type
+        else:
+            return False, inferred_type
+    return True, namespace_types
+
+
+def infer_function_type(function, namespace_types):
+    inner_namespace = {
+        **namespace_types,
+        **{type_dec.identifier: convert_type_name(type_dec.type_name, {})
+           for type_dec in function.args
+           }
+    }
+    return infer_type(function.body[0], inner_namespace)

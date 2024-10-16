@@ -185,9 +185,21 @@ def compile_program(ast: AST, ext_funcs: dict[str, Function] = None, is_repl: bo
 
 
 def convert_to_output(is_repl, namespace, objects):
+    type_checker_result, namespace_types = check_types(namespace)
+    if not type_checker_result:
+        print(f"ERROR: ", namespace_types)
+        return ""
+
     output = "from lisp_core import *\n\n"
     for function in namespace.values():
         output += compile_function(function, 0) + "\n"
     if is_repl:
-        output += "\n".join([compile_obj(form) for form in objects if not is_function_def(form)]) + "\n\n"
+        for function in objects:
+            if not isinstance(function, Function):
+                result, inferred_type = infer_type(function, namespace_types)
+                if not result:
+                    print(f"ERROR: {inferred_type}")
+                    return ""
+                print(f"Inferred type: {inferred_type.name()}")
+                output += "\n" + compile_obj(function)
     return output
