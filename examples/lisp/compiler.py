@@ -5,13 +5,10 @@ from itertools import islice
 
 from examples.lisp.constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
     Function, Atom
+from examples.lisp.type_system.type_checker import check_types, infer_type
 from parser.ast import AST
 
 logger = logging.getLogger("laxma.compiler")
-
-
-def compile_args(ast: AST):
-    return ", ".join(compile_obj(child) for child in islice(ast.children, 1, len(ast.children)))
 
 
 @singledispatch

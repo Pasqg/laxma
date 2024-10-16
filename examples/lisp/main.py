@@ -23,10 +23,9 @@ if __name__ == "__main__":
     elif remaining:
         logger.error("Could not parse the whole input!")
     else:
-        pruned = ast.prune(excluded={LispRule.PROGRAM}, use_child_rule={LispRule.ELEMENT, LispRule.ELEMENTS})
-        print(pruned)
+        print(ast)
 
-        result, output, _ = compile_program(pruned)
+        result, output, _ = compile_program(ast)
         if not result:
             logger.error(output)
         else:

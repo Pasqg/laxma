@@ -41,11 +41,10 @@ def execute(tokens, env, glob):
     elif remaining:
         print("ERROR: Could not parse the whole input!")
     else:
-        pruned = ast.prune(excluded={LispRule.PROGRAM}, use_child_rule={LispRule.ELEMENT, LispRule.ELEMENTS})
         if env["print_ast"]:
-            print(pruned)
+            print(ast)
 
-        result, output, functions = compile_program(pruned, env[FUNCTIONS], True)
+        result, output, functions = compile_program(ast, env[FUNCTIONS], True)
         if not result:
             print(f"ERROR: {output}")
         else:
