@@ -1,5 +1,4 @@
-from itertools import islice
-from typing import Self
+from typing import Self, Optional
 from pydantic import BaseModel
 
 from examples.lisp.grammar import LispRule
@@ -18,9 +17,19 @@ class EmptyForm:
     pass
 
 
+class TypeName(BaseModel):
+    base_type: str
+    sub_type: Optional[Self]
+
+
+class TypeDec(BaseModel):
+    identifier: str
+    type_name: TypeName
+
+
 class Function(BaseModel):
     name: str
-    args: list[str]
+    args: list[TypeDec]
     body: list[Form | Atom]
 
 
@@ -30,7 +39,7 @@ class Program(BaseModel):
 
 def builtin_functions():
     return {'import',
-            '++', '+', '-', 'x', '/', '*',
+            '++', '+', '-', '/', '*', '^',
             '=', '>', '<', '>=', '<=', 'and', 'or', 'not',
             'print', 'list', 'append', 'map', 'filter',
             'first', 'rest', 'lambda', 'if'}
@@ -44,6 +53,8 @@ def to_object(ast: AST):
             return Atom(value=ast.matched[0])
         case LispRule.FORM.value:
             return to_form(ast)
+        case LispRule.FUNCTION_DEF.value:
+            return to_function(ast)
     return None
 
 
@@ -54,22 +65,30 @@ def to_form(ast: AST):
     return EmptyForm()
 
 
-def to_function(form: Form):
-    function_name = form.elements[1].value
+def to_type(ast: AST) -> TypeName:
+    base_type = ast.matched[0]
+    if ast.children:
+        return TypeName(base_type=base_type, sub_type=to_type(ast.children[0]))
+    return TypeName(base_type=base_type, sub_type=None)
+
+
+def to_args(ast: AST) -> list[TypeDec]:
+    return [TypeDec(identifier=type_dec.matched[0] if type_dec.id.value == LispRule.TYPE_DEC.value else ast.matched[0],
+                    type_name=to_type(
+                        type_dec.children[0] if type_dec.id.value == LispRule.TYPE_DEC.value else type_dec))
+            for type_dec in ast.children]
+
+
+def to_function(ast: AST) -> Function:
+    function_name = ast.matched[2]
     builtins = builtin_functions()
     if function_name in builtins:
         raise SyntaxError(f"Builtin function {function_name} is being redefined.")
 
-    args = ([arg.value for arg in form.elements[2].elements]
-            if hasattr(form.elements[2], "elements") else form.elements[2].value)
-    return Function(name=function_name, args=args, body=islice(form.elements, 3, len(form.elements)))
+    args = to_args(ast.children[0])
+    return Function(name=function_name, args=args, body=[to_object(ast.children[1])])
 
 
-def is_function_def(form: Form):
-    first_element = form.elements[0]
-    return isinstance(first_element, Atom) and first_element.value == 'fun'
-
-
-def is_import(form: Form):
+def is_import(form: Form) -> bool:
     first_element = form.elements[0]
     return isinstance(first_element, Atom) and first_element.value == 'import'

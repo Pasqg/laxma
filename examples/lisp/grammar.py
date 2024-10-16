@@ -11,11 +11,15 @@ from parser.util_combinators import ref
 class LispRule(Enum):
     PROGRAM = auto()
     FORM = auto()
+    ARGS = auto()
     ELEMENTS = auto()
     ELEMENT = auto()
 
     EMPTY = auto()
     ATOM = auto()
+    TYPE_DEC = auto()
+    TYPE_NAME = auto()
+    FUNCTION_DEF = auto()
     STRING = auto()
     IDENTIFIER = auto()
     NUMBER = auto()
@@ -24,8 +28,9 @@ class LispRule(Enum):
 STANDALONE_TOKENS = {
     'number': r"\d+|\d+\.\d+",
     'string': r'"[^"]*"',
-    'identifier': r"[a-zA-Z\-\+\*/0-9<>=]+",
-    'parenthesis': "[()]"
+    'identifier': r"[a-zA-Z\-\+\*\^/0-9<>=]+",
+    'parenthesis': "[()]",
+    'special': r"[:,\[\]]",
 }
 
 
@@ -38,14 +43,20 @@ def create_parser() -> Combinator[TokenStream, ParserResult]:
     element = or_match(LispRule.ELEMENT, ref(lambda t: form(t)), atom)
     form = and_match(LispRule.FORM, lit("("), many(LispRule.ELEMENTS, element=element), lit(")"))
 
-    program = at_least_one(LispRule.PROGRAM, element=form)
+    composite_type_name = and_match(LispRule.TYPE_NAME, identifier, lit("["), ref(lambda t: type_name(t)), lit("]"))
+    type_name = or_match(LispRule.TYPE_NAME, composite_type_name, identifier)
 
-    program = at_least_one(LispRule.PROGRAM, element=form)
+    type_dec = and_match(LispRule.TYPE_DEC, identifier, lit(":"), type_name)
+    function_def = and_match(LispRule.FUNCTION_DEF, lit("("), lit("fun"), identifier,
+                             lit("("), many(LispRule.ARGS, element=type_dec, delim=lit(",")), lit(")"),
+                             element, lit(")"))
+
+    program = at_least_one(LispRule.PROGRAM, element=or_match(LispRule.ELEMENT, function_def, form))
 
     def pruner(tokens: TokenStream) -> ParserResult:
         result, ast, remaining = program(tokens)
         return ParserResult(result,
-                            ast.prune(excluded={LispRule.PROGRAM},
+                            ast.prune(excluded={LispRule.PROGRAM, LispRule.TYPE_DEC},
                                       use_child_rule={LispRule.ELEMENT, LispRule.ELEMENTS}),
                             remaining)
 

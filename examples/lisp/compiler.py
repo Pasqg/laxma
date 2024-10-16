@@ -3,8 +3,7 @@ from functools import singledispatch
 
 from itertools import islice
 
-from examples.lisp.constructs import Form, builtin_functions, to_object, is_function_def, is_import, to_function, \
-    Function, Atom
+from examples.lisp.constructs import Form, builtin_functions, to_object, Function, Atom
 from examples.lisp.type_system.type_checker import check_types, infer_type
 from parser.ast import AST
 
@@ -147,17 +146,15 @@ def compile_function(function: Function, indent: int):
     if function.name == "main":
         output = f"if __name__ == '__main__':\n{create_body(False)}\n"
     else:
-        output = f"def {function.name}({', '.join(function.args)}):\n{create_body(True)}"
+        output = f"def {function.name}({', '.join([arg.identifier for arg in function.args])}):\n{create_body(True)}"
 
     return output + "\n"
 
 
 def validate(objects) -> tuple[bool, str]:
     for obj in objects:
-        if not isinstance(obj, Form):
+        if not isinstance(obj, Function) or not isinstance(obj, Form):
             return False, f"Got unexpected object at root-level: {obj}"
-        if not is_function_def(obj) and is_import(obj):
-            return False, f"Expected only function definitions and imports at root-level but got: {obj}"
     return True, ""
 
 
@@ -170,13 +167,14 @@ def compile_program(ast: AST, ext_funcs: dict[str, Function] = None, is_repl: bo
 
     objects = [to_object(child) for child in ast.children]
 
-    validation_result, validation_message = validate(objects)
-    if not validation_result:
-        return False, validation_message, {}
+    if not is_repl:
+        validation_result, validation_message = validate(objects)
+        if not validation_result:
+            return False, validation_message, {}
 
     namespace = {
         **ext_funcs,
-        **{form.elements[1].value: to_function(form) for form in objects if is_function_def(form)},
+        **{obj.name: obj for obj in objects if isinstance(obj, Function)},
     }
 
     if not is_repl and 'main' not in namespace:

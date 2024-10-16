@@ -92,3 +92,16 @@ class PossibleEmptyList:
 
     def __eq__(self, other):
         return isinstance(other, PossibleEmptyList) and self.element == other.element
+
+
+builtin_base_types = {
+    'number': PrimitiveType.Number,
+    'string': PrimitiveType.String,
+    'bool': PrimitiveType.Bool,
+    'EmptyList': EmptyList(),
+}
+
+builtin_types = {
+    'List': lambda x: ListType(element=x),
+    'List*': lambda x: PossibleEmptyList(element=x),
+}

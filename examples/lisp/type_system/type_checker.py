@@ -1,7 +1,8 @@
 from functools import singledispatch
 
-from examples.lisp.constructs import Function, Form, Atom, builtin_functions
-from examples.lisp.type_system.types import PrimitiveType, UnrecognizedType, EmptyList, ListType, PossibleEmptyList
+from examples.lisp.constructs import Function, Form, Atom, builtin_functions, TypeName
+from examples.lisp.type_system.types import PrimitiveType, UnrecognizedType, EmptyList, ListType, PossibleEmptyList, \
+    builtin_types, builtin_base_types
 
 
 def is_string_literal(atom: Atom) -> bool:
@@ -54,6 +55,19 @@ def infer_element_types(t1, t2) -> tuple[bool, object]:
         return True, t1
 
     return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
+
+
+def convert_type_name(type_name: TypeName, user_types):
+    base_type = type_name.base_type
+    if type_name.sub_type is None:
+        if base_type not in builtin_base_types:
+            raise TypeError(f"Base type {base_type} is not defined")
+        return builtin_base_types[base_type]
+
+    if base_type not in builtin_types:
+        raise TypeError(f"Composite type is not defined")
+
+    return builtin_types[base_type](convert_type_name(type_name.sub_type, user_types))
 
 
 @singledispatch

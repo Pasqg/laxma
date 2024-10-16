@@ -1,14 +1,31 @@
-(fun add (x y) (+ x y))
+(fun add (x: List[number], y: number) (+ x y))
 
-(fun quickSort (xs)
+(fun range (start: number, end: number)
+    (if (not (= start end))
+        (++ (- end 1) (range start (- end 1)))
+        (list)
+    )
+)
+
+(fun randlist (n: number)
+    (if (> n 0)
+        (++ (int (* 100 (randval))) (randlist (- n 1)))
+        (list)))
+
+(fun tcorandlist (n: number, acc: number)
+    (if (> n 0)
+        (tcorandlist (- n 1) (++ (int (* 100 (randval))) acc))
+        acc))
+
+(fun quicksort (xs: list)
     (if xs
         (+
-            (quickSort
+            (quicksort
                 (filter
                     (lambda (x) (< x (first xs)))
                     (rest xs)))
             (list (first xs))
-            (quickSort
+            (quicksort
                 (filter
                     (lambda (x) (>= x (first xs)))
                     (rest xs))))
@@ -16,4 +33,4 @@
 )
 
 (fun main ()
-    (print (quickSort (list 5 5 5 3 99 33 -22 2 7 5 5 6 5 5 5 41 51 -7))))
+    (print (quicksort (tcorandlist 100 (list)))))
