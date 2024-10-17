@@ -1,4 +1,5 @@
 from functools import singledispatch
+from itertools import islice
 
 from examples.lisp.constructs import Function, Form, Atom, builtin_functions, TypeName
 from examples.lisp.type_system.types import PrimitiveType, UnrecognizedType, EmptyList, ListType, PossibleEmptyList, \
@@ -203,7 +204,29 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                     return True, true_branch_type
 
                 case "print":
-                    return infer_type(elements[1], namespace)
+                    result, first_type = infer_type(elements[1], namespace)
+                    if not result:
+                        return False, first_type
+
+                    return True, first_type
+
+                case "+" | "*" | "/" | "-":
+                    result, element_type = infer_type(elements[1], namespace)
+                    if not result:
+                        return False, element_type
+
+                    if element_type != PrimitiveType.Number:
+                        return False, f"'{name}' expects '{PrimitiveType.Number.name()}' but got '{element_type.name()}'"
+
+                    for i, element in enumerate(islice(elements, 2, None)):
+                        result, i_type = infer_type(element, namespace)
+                        if not result:
+                            return False, element_type
+
+                        if element_type != i_type:
+                            return False, f"'{name}' expects '{element_type}' but got '{i_type}' for {i}-th argument"
+
+                    return True, element_type
 
         return False, f"Unrecognized form '{name}', cannot infer type"
 
