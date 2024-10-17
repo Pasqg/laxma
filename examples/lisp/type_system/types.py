@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from enum import Enum
+from typing import FrozenSet
 
 
 class UnrecognizedType:
@@ -32,7 +34,11 @@ class PrimitiveType(Enum):
     def __eq__(self, other):
         return isinstance(other, PrimitiveType) and self.value == other.value
 
+    def __hash__(self):
+        return self.value.__hash__()
 
+
+@dataclass
 class EmptyList:
     def name(self):
         return "EmptyList"
@@ -45,13 +51,10 @@ class EmptyList:
     def __repr__(self):
         return self.name()
 
-    def __eq__(self, other):
-        return isinstance(other, EmptyList)
 
-
+@dataclass
 class ListType:
-    def __init__(self, element):
-        self.element = element
+    element: object
 
     def name(self):
         return f"List<{self.element.name()}>"
@@ -67,9 +70,6 @@ class ListType:
 
     def __repr__(self):
         return self.name()
-
-    def __eq__(self, other):
-        return isinstance(other, ListType) and self.element == other.element
 
 
 class PossibleEmptyList:
@@ -103,6 +103,6 @@ builtin_base_types = {
 }
 
 builtin_types = {
-    'List': lambda x: ListType(element=x),
+    'List': lambda x: ListType(x),
     'List*': lambda x: PossibleEmptyList(element=x),
 }

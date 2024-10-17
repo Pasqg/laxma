@@ -43,7 +43,7 @@ def infer_element_types(t1, t2) -> tuple[bool, object]:
         result, element_type = infer_element_types(t1.element, t2.element)
         if not result:
             return False, f"Incompatible list types '{t1.name()}' and '{t2.name()}'"
-        return True, ListType(element=element_type)
+        return True, ListType(element_type)
 
     if (is_list(t1) or is_possibly_empty(t1)) and (is_list(t2) or is_possibly_empty(t2)):
         result, element_type = infer_element_types(t1.element, t2.element)
@@ -123,8 +123,8 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                         if not result:
                             return False, i_type
 
-                        result, resulting_list_type = infer_element_types(ListType(element=element_type),
-                                                                          ListType(element=i_type))
+                        result, resulting_list_type = infer_element_types(ListType(element_type),
+                                                                          ListType(i_type))
                         if not result:
                             # todo: save all valid i_type in a set (+ first element_type) and add them to this error message
                             return False, f"List {i - 1}-th element has type '{i_type.name()}' which is not compatible with inferred type '{element_type.name()}'"
@@ -147,9 +147,9 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                         return True, ListType(element_type)
 
                     if is_list(list_type) or is_possibly_empty(list_type):
-                        result, resulting_list_type = infer_element_types(ListType(element=element_type), list_type)
+                        result, resulting_list_type = infer_element_types(ListType(element_type), list_type)
                         if result:
-                            return True, ListType(element=resulting_list_type.element)
+                            return True, ListType(resulting_list_type.element)
 
                     return False, f"Cannot append element of type '{element_type.name()}' to '{list_type.name()}'"
 
