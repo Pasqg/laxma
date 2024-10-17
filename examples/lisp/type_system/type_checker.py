@@ -149,7 +149,7 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
                     if is_list(list_type) or is_possibly_empty(list_type):
                         result, resulting_list_type = infer_element_types(ListType(element=element_type), list_type)
                         if result:
-                            return True, resulting_list_type
+                            return True, ListType(element=resulting_list_type.element)
 
                     return False, f"Cannot append element of type '{element_type.name()}' to '{list_type.name()}'"
 
