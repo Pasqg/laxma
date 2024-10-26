@@ -181,16 +181,15 @@ class Compiler:
         if not is_repl and 'main' not in namespace:
             return False, f"Function 'main' is not defined!", {}
 
-        output = self.convert_to_output(is_repl, namespace, objects)
+        type_checker_result, namespace_types = check_types(namespace)
+        if not type_checker_result:
+            return False, namespace_types, ext_funcs
+
+        output = self.convert_to_output(is_repl, namespace, namespace_types, objects)
         return True, output, namespace
 
 
-    def convert_to_output(self, is_repl, namespace, objects):
-        type_checker_result, namespace_types = check_types(namespace)
-        if not type_checker_result:
-            print(f"ERROR: ", namespace_types)
-            return ""
-
+    def convert_to_output(self, is_repl, namespace, namespace_types, objects):
         output = "from lisp_core import *\n\n"
         for function in namespace.values():
             output += self.compile_function(function, 0) + "\n"
