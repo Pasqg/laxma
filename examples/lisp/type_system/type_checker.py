@@ -210,6 +210,20 @@ def _(form: Form, namespace: dict[str, object]) -> tuple[bool, object]:
 
                     return True, first_type
 
+                case ">" | "<" | "<=" | ">=":
+                    result, element_type = infer_type(elements[1], namespace)
+                    if not result:
+                        return False, element_type
+
+                    result, second_element_type = infer_type(elements[2], namespace)
+                    if not result:
+                        return False, second_element_type
+
+                    if element_type != second_element_type:
+                        return False, f"'{name}' expects '{element_type}' but got '{second_element_type}' for the second argument"
+
+                    return True, PrimitiveType.Bool
+
                 case "+" | "*" | "/" | "-":
                     result, element_type = infer_type(elements[1], namespace)
                     if not result:
