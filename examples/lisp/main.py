@@ -2,8 +2,8 @@ import logging.config
 
 from datetime import datetime
 
-from compiler import compile_program
-from grammar import lexer, create_parser, LispRule
+from compiler import Compiler
+from grammar import lexer, create_parser
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('lisp-example')
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     else:
         print(ast)
 
-        result, output, _ = compile_program(ast)
+        result, output, _ = Compiler().compile_program(ast)
         if not result:
             logger.error(output)
         else:

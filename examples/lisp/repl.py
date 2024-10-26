@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from compiler import compile_program
-from grammar import create_parser, lexer, LispRule
+from compiler import Compiler
+from grammar import create_parser, lexer
 
 import traceback
 
@@ -44,7 +44,7 @@ def execute(tokens, env, glob):
         if env["print_ast"]:
             print(ast)
 
-        result, output, functions = compile_program(ast, env[FUNCTIONS], True)
+        result, output, functions = Compiler().compile_program(ast, env[FUNCTIONS], True)
         if not result:
             print(f"ERROR: {output}")
         else:
