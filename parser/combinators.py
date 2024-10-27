@@ -71,6 +71,10 @@ def or_match(id: Optional[RuleId], *rules: Combinator[RuleId, TokenType]) -> Com
     return inner
 
 
+def optional(id: Optional[RuleId] = None, *, parser: Combinator[RuleId, TokenType]) -> Combinator[RuleId, TokenType]:
+    return or_match(id, parser, match_none())
+
+
 def many(id: Optional[RuleId] = None, *, element: Combinator[RuleId, TokenType],
          delim: Optional[Combinator[RuleId, TokenType]] = None) -> Combinator[RuleId, TokenType]:
     """

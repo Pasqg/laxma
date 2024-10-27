@@ -1,5 +1,5 @@
 from parser.ast import AST
-from parser.combinators import or_match, and_match, at_least_one, match_none, match_any
+from parser.combinators import or_match, and_match, at_least_one, match_none, match_any, optional
 from parser.string_combinators import match_str, lit
 from parser.token_stream import TokenStream
 from parser.types import ParserResult
@@ -127,3 +127,13 @@ def test_list_no_match():
 
     tokens_func = TokenStream(["fanc"])
     assert parser(tokens_func) == ParserResult.failed(tokens_func)
+
+
+def test_optional():
+    parser = optional("LIST", parser=match_str("FUNC", "func"))
+
+    tokens_fanc = TokenStream(["fanc"])
+    assert parser(tokens_fanc) == ParserResult.succeeded(AST("LIST", [], [AST()]), tokens_fanc)
+
+    tokens_func = TokenStream(["func"])
+    assert parser(tokens_func) == ParserResult.succeeded(AST("LIST", ["func"], [AST("FUNC", ["func"])]), tokens_func.advance()[1])
