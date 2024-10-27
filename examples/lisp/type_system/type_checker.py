@@ -62,11 +62,14 @@ def convert_type_name(type_name: TypeName, user_types):
     base_type = type_name.base_type
     if type_name.sub_type is None:
         if base_type not in builtin_base_types:
-            raise TypeError(f"Base type {base_type} is not defined")
+            if base_type not in builtin_types:
+                raise TypeError(f"Base type '{base_type}' is not defined")
+            else:
+                raise TypeError(f"Base type '{base_type}' is not defined, maybe you meant '{base_type}[...]'")
         return builtin_base_types[base_type]
 
     if base_type not in builtin_types:
-        raise TypeError(f"Composite type is not defined")
+        raise TypeError(f"Composite type '{base_type}' is not defined")
 
     return builtin_types[base_type](convert_type_name(type_name.sub_type, user_types))
 
