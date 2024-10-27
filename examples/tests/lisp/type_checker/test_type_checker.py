@@ -59,10 +59,10 @@ def test_element_type_inference():
     assert (infer_element_types(PrimitiveType.Number, PrimitiveType.String)
             == (False, "Incompatible list types 'number' and 'string'"))
     assert (infer_element_types(ListType(PrimitiveType.Number), ListType(PrimitiveType.String))
-            == (False, "Incompatible list types 'List<number>' and 'List<string>'"))
+            == (False, "Incompatible list types 'List[number]' and 'List[string]'"))
     assert (infer_element_types(ListType(ListType(PrimitiveType.String)),
                                 ListType(ListType(PrimitiveType.Number)))
-            == (False, "Incompatible list types 'List<List<string>>' and 'List<List<number>>'"))
+            == (False, "Incompatible list types 'List[List[string]]' and 'List[List[number]]'"))
 
 
 def test_list_type_inference():
@@ -92,7 +92,7 @@ def test_list_type_inference():
             == (False, "List 1-th element has type 'string' which is not compatible with inferred type 'number'"))
     assert (infer_type(list_of(list_of(NUMBER), list_of(STRING)), {})
             == (False,
-                "List 1-th element has type 'List<string>' which is not compatible with inferred type 'List<number>'"))
+                "List 1-th element has type 'List[string]' which is not compatible with inferred type 'List[number]'"))
 
 
 def test_first_type_inference():
@@ -150,7 +150,7 @@ def test_append_type_inference():
     assert (infer_type(Form(elements=[append_op, list_of(STRING), list_of(list_of(STRING))]), {})
             == (True, ListType(ListType(PrimitiveType.String))))
     assert (infer_type(Form(elements=[append_op, list_of(EMPTY_LIST), list_of(list_of(STRING))]), {})
-            == (False, "Cannot append element of type 'List<EmptyList>' to 'List<List<string>>'"))
+            == (False, "Cannot append element of type 'List[EmptyList]' to 'List[List[string]]'"))
 
     assert (infer_type(Form(elements=[append_op, NUMBER, NUMBER]), {})
             == (False, "Cannot append element of type 'number' to 'number'"))
@@ -159,17 +159,17 @@ def test_append_type_inference():
 
     assert (infer_type(
         Form(elements=[append_op, NUMBER, list_of(STRING)]), {})
-            == (False, "Cannot append element of type 'number' to 'List<string>'"))
+            == (False, "Cannot append element of type 'number' to 'List[string]'"))
     assert (infer_type(
         Form(elements=[append_op, STRING, list_of(NUMBER)]), {})
-            == (False, "Cannot append element of type 'string' to 'List<number>'"))
+            == (False, "Cannot append element of type 'string' to 'List[number]'"))
 
     assert (infer_type(
         Form(elements=[append_op, NUMBER, list_of(STRING)]), {})
-            == (False, "Cannot append element of type 'number' to 'List<string>'"))
+            == (False, "Cannot append element of type 'number' to 'List[string]'"))
 
     assert (infer_type(Form(elements=[append_op, EMPTY_LIST, list_of(STRING)]), {})
-            == (False, "Cannot append element of type 'EmptyList' to 'List<string>'"))
+            == (False, "Cannot append element of type 'EmptyList' to 'List[string]'"))
 
 
 def test_if_type_inference():
@@ -182,11 +182,11 @@ def test_if_type_inference():
     assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, EMPTY_LIST]), {})
             == (False, f"Incompatible types in if branches: 'number' and 'EmptyList'"))
     assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, list_of(NUMBER)]), {})
-            == (False, f"Incompatible types in if branches: 'number' and 'List<number>'"))
+            == (False, f"Incompatible types in if branches: 'number' and 'List[number]'"))
     assert (infer_type(Form(elements=[if_op, BOOL, list_of(STRING), list_of(NUMBER)]), {})
-            == (False, f"Incompatible types in if branches: 'List<string>' and 'List<number>'"))
+            == (False, f"Incompatible types in if branches: 'List[string]' and 'List[number]'"))
     assert (infer_type(Form(elements=[if_op, BOOL, list_of(EMPTY_LIST), list_of(list_of(NUMBER))]), {})
-            == (False, f"Incompatible types in if branches: 'List<EmptyList>' and 'List<List<number>>'"))
+            == (False, f"Incompatible types in if branches: 'List[EmptyList]' and 'List[List[number]]'"))
 
     assert (infer_type(Form(elements=[if_op, BOOL, NUMBER, NUMBER]), {})
             == (True, PrimitiveType.Number))

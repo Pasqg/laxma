@@ -57,7 +57,7 @@ class ListType:
     element: object
 
     def name(self):
-        return f"List<{self.element.name()}>"
+        return f"List[{self.element.name()}]"
 
     def is_compatible(self, other_type):
         if isinstance(other_type, EmptyList):
@@ -77,7 +77,7 @@ class PossibleEmptyList:
         self.element = element
 
     def name(self):
-        return f"PossibleEmptyList<{self.element.name()}>"
+        return f"List*[{self.element.name()}]"
 
     def is_compatible(self, other_type):
         if isinstance(other_type, EmptyList):
